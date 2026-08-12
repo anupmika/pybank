@@ -1,4 +1,4 @@
-from src.bank import bank
+from src.app import bank
 
 
 if __name__ == "__main__":
