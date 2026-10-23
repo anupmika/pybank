@@ -9,7 +9,6 @@ from collections.abc import Iterator
 import pytest
 
 from src.helpers.design import SingletonMeta
-from src.sqlite_db import SqliteDB
 
 
 @pytest.fixture

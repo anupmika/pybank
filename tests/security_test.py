@@ -1,9 +1,6 @@
 """Tests for the PIN hashing helpers in src/helpers/security.py."""
 from __future__ import annotations
 
-import hmac
-import hashlib
-
 from src.helpers.security import hash_pin, verify_pin
 
 

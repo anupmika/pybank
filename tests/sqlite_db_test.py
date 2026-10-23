@@ -1,11 +1,8 @@
 """Tests for the SqliteDB singleton and schema bootstrap."""
 from __future__ import annotations
 
-import sqlite3
-
 import pytest
 
-from src.helpers.design import SingletonMeta
 from src.sqlite_db import SqliteDB
 
 
