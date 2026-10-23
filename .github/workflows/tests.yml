@@ -1,0 +1,28 @@
+name: tests
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+    branches: ["*"]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Create local .venv and install dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --no-cache-dir -e .
+      - name: Run tests
+        run: .venv/bin/python -m pytest tests/ -v
