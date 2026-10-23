@@ -1,9 +1,15 @@
+"""
+Pydantic data models for validation.
+Defines schemas for User, Account, and Transaction entities.
+"""
+
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class User(BaseModel):
+    """Schema for validating user registration data."""
     model_config = ConfigDict(populate_by_name=True)
 
     aadhar_num: str = Field(pattern=r'^\d{12}$', description='12-digit Aadhar Number')
@@ -19,6 +25,7 @@ class User(BaseModel):
 
 
 class Account(BaseModel):
+    """Schema for validating bank account data."""
     model_config = ConfigDict(populate_by_name=True)
 
     account_num: int = Field(ge=1, alias='accountNum')
@@ -31,6 +38,7 @@ class Account(BaseModel):
 
 
 class TransactionRecord(BaseModel):
+    """Schema for validating transaction records."""
     model_config = ConfigDict(populate_by_name=True)
 
     id: int
@@ -39,3 +47,4 @@ class TransactionRecord(BaseModel):
     amount: float = Field(ge=0)
     balance_after: float = Field(alias='balanceAfter')
     timestamp: datetime
+

@@ -1,3 +1,9 @@
+"""
+PyBank core business logic handler.
+Implements all banking operations including account management,
+transactions, and PIN authentication.
+"""
+
 import re
 import sqlite3
 from datetime import datetime
@@ -9,6 +15,7 @@ from src.helpers.security import hash_pin, verify_pin
 from src.sqlite_db import SqliteDB
 from src.validators.models import Account, User
 
+# Constants
 MAX_PIN_ATTEMPTS = 3
 ENTER_ACCOUNT_PROMPT = 'Enter Account Number: '
 ACCOUNT_NOT_FOUND = '❌ Error: Account number not found.'
@@ -17,13 +24,29 @@ INVALID_AMOUNT = '❌ Error: Invalid amount entered. Please type a valid numeric
 
 
 class PyBank:
+    """
+    Main banking operations handler.
+    
+    Manages database connections and provides methods for all banking
+    operations including account registration, transactions, and inquiries.
+    """
+    
     def __init__(self):
+        """Initialize PyBank with database connection."""
         db = SqliteDB()
         self.connect = db.db_connect()
         self.cursor = self.connect.cursor()
 
     def _verify_pin(self, account_num) -> bool:
-        """Ask for the account PIN (3 attempts). Returns True only if it matches."""
+        """
+        Ask for the account PIN with up to 3 attempts.
+        
+        Args:
+            account_num: The account number to verify PIN for.
+            
+        Returns:
+            True if PIN matches, False otherwise.
+        """
         self.cursor.execute(
             'SELECT pin_hash FROM accounts WHERE account_num = ?', (account_num,)
         )
@@ -40,6 +63,7 @@ class PyBank:
             )
             return False
 
+        # Allow up to MAX_PIN_ATTEMPTS
         for attempt in range(1, MAX_PIN_ATTEMPTS + 1):
             if verify_pin(getpass('Enter 4-digit PIN: '), row[0]):
                 return True
@@ -49,8 +73,45 @@ class PyBank:
         print('🔒 Too many wrong attempts. Access denied.')
         return False
 
-    def register_account(self):
+    def _fetch_account(self, target_acc: str):
+        """
+        Fetch account by number and return an Account model.
+        
+        Args:
+            target_acc: The account number to fetch.
+            
+        Returns:
+            Account model instance if found, None otherwise.
+        """
         cursor = self.cursor
+        query_select = """
+            SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
+            FROM accounts
+            WHERE account_num = ?
+            """
+        cursor.execute(query_select, (target_acc,))
+        row = cursor.fetchone()
+
+        if row is None:
+            print(ACCOUNT_NOT_FOUND)
+            return None
+
+        account_data = {
+            'account_num': row[0],
+            'user_id': row[1],
+            'account_type': row[2],
+            'balance': row[3],
+            'currency': row[4],
+            'is_active': bool(row[5]),
+            'created_at': row[6],
+        }
+
+        return Account.model_validate(account_data)
+
+    def register_account(self):
+        """Register a new user account with validation and PIN setup."""
+        cursor = self.cursor
+        # Collect user information
         raw_aadhar_num: str = input('Enter 12-digit Aadhar Number (no dashes): ')
         raw_name = input('Enter Full Name: ')
         raw_email = input('Enter Email (Optional, press Enter to skip): ') or None
@@ -61,6 +122,7 @@ class PyBank:
         raw_city = input('Enter City: ')
         raw_initial_bal = input('Enter Initial Balance: ')
 
+        # Set and verify PIN
         pin = getpass('Set a 4-digit PIN: ')
         confirm_pin = getpass('Confirm PIN: ')
         if not re.fullmatch(r'\d{4}', pin) or pin != confirm_pin:
@@ -70,6 +132,7 @@ class PyBank:
             )
             return
 
+        # Prepare user data for validation
         user_input = {
             'aadhar_num': raw_aadhar_num,
             'name': raw_name,
@@ -83,9 +146,11 @@ class PyBank:
         }
 
         try:
+            # Validate user data
             validated_user = User(**user_input)
             user_dict = validated_user.model_dump()
 
+            # Insert user into database
             user_query = """
             INSERT INTO users (aadhar_num, name, email, phone, age, father_name, address, city, initial_balance, created_at)
             VALUES (:aadhar_num, :name, :email, :phone, :age, :father_name, :address, :city, :initial_balance, :created_at)
@@ -93,8 +158,10 @@ class PyBank:
             cursor.execute(user_query, user_dict)
             new_user_id = cursor.lastrowid
 
+            # Generate account number based on user ID
             generated_account_num = 500000 + new_user_id
 
+            # Prepare account data
             account_input = {
                 'accountNum': generated_account_num,
                 'userId': new_user_id,
@@ -105,6 +172,7 @@ class PyBank:
             account_dict = validated_account.model_dump()
             account_dict['pin_hash'] = hash_pin(pin)
 
+            # Insert account into database
             account_query = """
             INSERT INTO accounts (account_num, user_id, account_type, balance, currency, is_active, created_at, pin_hash)
             VALUES (:account_num, :user_id, :account_type, :balance, :currency, :is_active, :created_at, :pin_hash)
@@ -113,6 +181,7 @@ class PyBank:
 
             self.connect.commit()
 
+            # Display success message
             print(
                 f"\n==============================================\n"
                 f"🎉 REGISTRATION SUCCESSFUL!\n"
@@ -136,6 +205,7 @@ class PyBank:
             self.connect.rollback()
 
     def view_balance(self):
+        """View account balance after PIN verification."""
         cursor = self.cursor
 
         try:
@@ -167,6 +237,7 @@ class PyBank:
 
             account = Account.model_validate(account_data)
 
+            # Display balance summary
             print(
                 f"\n==============================================\n"
                 f"📊 ACCOUNT SUMMARY\n"
@@ -183,7 +254,7 @@ class PyBank:
             print(f"❌ An error occurred: {err}")
 
     def view_data(self):
-
+        """View full account and user profile details after PIN verification."""
         cursor = self.cursor
 
         try:
@@ -191,6 +262,7 @@ class PyBank:
             if not self._verify_pin(target_acc):
                 return
 
+            # Fetch user and account details with join
             query = """
             SELECT
                 u.aadhar_num, u.name, u.email, u.phone, u.age, u.father_name, u.address, u.city, u.initial_balance, u.created_at,
@@ -236,6 +308,7 @@ class PyBank:
                 print('❌ Error: Account is closed/inactive. Details not available.')
                 return
 
+            # Display full profile
             print(
                 f"\n==============================================\n"
                 f"👤 CUSTOMER PROFILE & ACCOUNT DETAILS\n"
@@ -264,7 +337,7 @@ class PyBank:
             print(f"❌ Failed to fetch complete record data: {err}")
 
     def withdraw_money(self):
-
+        """Withdraw money from an account after PIN verification."""
         cursor = self.cursor
 
         try:
@@ -280,11 +353,10 @@ class PyBank:
                     print('❌ Error: Withdraw amount must be greater than zero.')
                     return
             except ValueError:
-                print(
-                    INVALID_AMOUNT
-                )
+                print(INVALID_AMOUNT)
                 return
 
+            # Fetch current account details
             query_select = """
                 SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
                 FROM accounts
@@ -297,6 +369,7 @@ class PyBank:
                 print(ACCOUNT_NOT_FOUND)
                 return
 
+            # Calculate new balance
             account_data = {
                 'account_num': row[0],
                 'user_id': row[1],
@@ -315,9 +388,11 @@ class PyBank:
                 )
                 return
 
+            # Update account balance
             query_update = 'UPDATE accounts SET balance = ? WHERE account_num = ?'
             cursor.execute(query_update, (account.balance, account.account_num))
 
+            # Record transaction
             transaction_query = """
                 INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp)
                 VALUES (?, ?, ?, ?, ?)
@@ -353,7 +428,7 @@ class PyBank:
             self.connect.rollback()
 
     def deposit_money(self):
-
+        """Deposit money into an account."""
         cursor = self.cursor
 
         try:
@@ -366,11 +441,10 @@ class PyBank:
                     print('❌ Error: Deposit amount must be greater than zero.')
                     return
             except ValueError:
-                print(
-                    INVALID_AMOUNT
-                )
+                print(INVALID_AMOUNT)
                 return
 
+            # Fetch current account details
             query_select = """
                 SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
                 FROM accounts
@@ -383,6 +457,7 @@ class PyBank:
                 print(ACCOUNT_NOT_FOUND)
                 return
 
+            # Calculate new balance
             account_data = {
                 'account_num': row[0],
                 'user_id': row[1],
@@ -399,9 +474,11 @@ class PyBank:
                 print('❌ Transaction Denied: Cannot deposit into an inactive account.')
                 return
 
+            # Update account balance
             query_update = 'UPDATE accounts SET balance = ? WHERE account_num = ?'
             cursor.execute(query_update, (account.balance, account.account_num))
 
+            # Record transaction
             transaction_query = """
                 INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp)
                 VALUES (?, ?, ?, ?, ?)
@@ -437,6 +514,7 @@ class PyBank:
             self.connect.rollback()
 
     def view_history(self):
+        """View transaction history for an account after PIN verification."""
         cursor = self.cursor
 
         try:
@@ -444,34 +522,15 @@ class PyBank:
             if not self._verify_pin(target_acc):
                 return
 
-            query_select = """
-                SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
-                FROM accounts
-                WHERE account_num = ?
-                """
-            cursor.execute(query_select, (target_acc,))
-            row = cursor.fetchone()
-
-            if row is None:
-                print(ACCOUNT_NOT_FOUND)
+            account = self._fetch_account(target_acc)
+            if account is None:
                 return
-
-            account_data = {
-                'account_num': row[0],
-                'user_id': row[1],
-                'account_type': row[2],
-                'balance': row[3],
-                'currency': row[4],
-                'is_active': bool(row[5]),
-                'created_at': row[6],
-            }
-
-            account = Account.model_validate(account_data)
 
             if not account.is_active:
                 print('❌ Error: Account is closed/inactive. History not available.')
                 return
 
+            # Fetch transaction history
             history_query = """
                 SELECT transaction_type, amount, balance_after, timestamp
                 FROM transactions
@@ -485,6 +544,7 @@ class PyBank:
                 print('\n📭 No transactions found for this account.')
                 return
 
+            # Display transaction history
             print(
                 f"\n==============================================\n"
                 f"📜 TRANSACTION HISTORY\n"
@@ -513,6 +573,7 @@ class PyBank:
             print(f"❌ Failed to fetch transaction history: {err}")
 
     def close_account(self):
+        """Close/deactivate an account after PIN verification."""
         cursor = self.cursor
 
         try:
@@ -520,34 +581,15 @@ class PyBank:
             if not self._verify_pin(target_acc):
                 return
 
-            query_select = """
-                SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
-                FROM accounts
-                WHERE account_num = ?
-                """
-            cursor.execute(query_select, (target_acc,))
-            row = cursor.fetchone()
-
-            if row is None:
-                print(ACCOUNT_NOT_FOUND)
+            account = self._fetch_account(target_acc)
+            if account is None:
                 return
-
-            account_data = {
-                'account_num': row[0],
-                'user_id': row[1],
-                'account_type': row[2],
-                'balance': row[3],
-                'currency': row[4],
-                'is_active': bool(row[5]),
-                'created_at': row[6],
-            }
-
-            account = Account.model_validate(account_data)
 
             if not account.is_active:
                 print('❌ Account is already closed/inactive.')
                 return
 
+            # Deactivate account
             query_update = 'UPDATE accounts SET is_active = 0 WHERE account_num = ?'
             cursor.execute(query_update, (account.account_num,))
             self.connect.commit()

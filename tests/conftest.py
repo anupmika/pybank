@@ -1,4 +1,11 @@
-"""Shared pytest fixtures for the PyBank test suite."""
+"""
+Shared pytest fixtures for the PyBank test suite.
+
+This module provides reusable fixtures for setting up test databases,
+isolating singletons, and creating test data. All tests use temporary
+databases to avoid affecting the actual application database.
+"""
+
 from __future__ import annotations
 
 import os
@@ -13,11 +20,20 @@ from src.helpers.design import SingletonMeta
 
 @pytest.fixture
 def tmp_db_path() -> Iterator[str]:
-    """Return a path to a temporary SQLite database file."""
+    """
+    Create and yield a temporary SQLite database file path.
+    
+    Automatically cleans up the database file and any WAL/SHM sidecar
+    files after the test completes.
+    
+    Yields:
+        str: Path to a temporary database file.
+    """
     fd, path = tempfile.mkstemp(suffix='.db', prefix='pybank_test_')
     os.close(fd)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     yield path
+    # Clean up database and sidecar files
     if os.path.exists(path):
         os.remove(path)
     # Also remove WAL / SHM sidecar files if any were created.
@@ -29,17 +45,38 @@ def tmp_db_path() -> Iterator[str]:
 
 @pytest.fixture
 def reset_singletons() -> Iterator[None]:
-    """Clear every SingletonMeta registry so tests start from a clean slate."""
+    """
+    Clear all SingletonMeta registries before and after each test.
+    
+    Ensures each test starts from a clean slate with no cached singleton
+    instances from previous tests.
+    
+    Yields:
+        None: Control returns to the test after clearing registries.
+    """
+    # Clear before test
     for cls in list(SingletonMeta._instances.keys()):
         del SingletonMeta._instances[cls]
     yield
+    # Clear after test
     for cls in list(SingletonMeta._instances.keys()):
         del SingletonMeta._instances[cls]
 
 
 @pytest.fixture
 def db_path(tmp_db_path: str, monkeypatch, reset_singletons) -> str:
-    """Point the app at a temporary database and return that path."""
+    """
+    Point the application to use the temporary test database.
+    
+    Args:
+        tmp_db_path: Path to temporary database from fixture.
+        monkeypatch: Pytest monkeypatch fixture.
+        reset_singletons: Fixture to reset singleton instances.
+        
+    Returns:
+        str: Path to the test database.
+    """
+    # Override database path in both sqlite_db and const modules
     monkeypatch.setattr('src.sqlite_db.DB_PATH', tmp_db_path)
     monkeypatch.setattr('src.const.DB_PATH', tmp_db_path)
     return tmp_db_path
@@ -47,7 +84,15 @@ def db_path(tmp_db_path: str, monkeypatch, reset_singletons) -> str:
 
 @pytest.fixture
 def db_conn(db_path: str) -> Iterator[sqlite3.Connection]:
-    """Return a raw SQLite connection to the test database."""
+    """
+    Provide a raw SQLite connection to the test database.
+    
+    Args:
+        db_path: Path to the test database.
+        
+    Yields:
+        sqlite3.Connection: Active database connection.
+    """
     conn = sqlite3.connect(db_path)
     yield conn
     conn.close()
@@ -55,7 +100,16 @@ def db_conn(db_path: str) -> Iterator[sqlite3.Connection]:
 
 @pytest.fixture
 def bank(db_path: str, reset_singletons):
-    """A PyBank handler backed by the temporary database."""
+    """
+    Create a PyBank handler instance backed by the test database.
+    
+    Args:
+        db_path: Path to the test database.
+        reset_singletons: Fixture to reset singleton instances.
+        
+    Returns:
+        PyBank: Configured PyBank handler for testing.
+    """
     from src.handlers.pybank import PyBank
 
     return PyBank()
@@ -74,7 +128,24 @@ def insert_user(
     city: str = 'Metropolis',
     initial_balance: float = 1000.0,
 ) -> int:
-    """Insert a user row and return its id."""
+    """
+    Insert a user record into the database for testing.
+    
+    Args:
+        conn: Active database connection.
+        aadhar_num: 12-digit Aadhar number.
+        name: User's full name.
+        email: User's email address (optional).
+        phone: User's phone number.
+        age: User's age.
+        father_name: Father's name.
+        address: User's address (optional).
+        city: User's city.
+        initial_balance: Initial balance.
+        
+    Returns:
+        int: ID of the inserted user.
+    """
     cur = conn.cursor()
     cur.execute(
         """
@@ -103,7 +174,22 @@ def insert_account(
     is_active: int = 1,
     pin_hash: str | None = None,
 ) -> int:
-    """Insert an account row and return its id."""
+    """
+    Insert an account record into the database for testing.
+    
+    Args:
+        conn: Active database connection.
+        user_id: ID of the associated user.
+        account_num: Account number (auto-generated if None).
+        account_type: Type of account.
+        balance: Account balance.
+        currency: Currency code.
+        is_active: Whether account is active (1) or inactive (0).
+        pin_hash: Hashed PIN (optional).
+        
+    Returns:
+        int: ID of the inserted account.
+    """
     if account_num is None:
         account_num = 500000 + user_id
     cur = conn.cursor()
@@ -121,3 +207,4 @@ def insert_account(
     lastrowid = cur.lastrowid
     assert lastrowid is not None
     return lastrowid
+

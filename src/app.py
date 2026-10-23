@@ -1,3 +1,8 @@
+"""
+Main application module for PyBank CLI.
+Handles the main menu loop and user input routing to PyBank operations.
+"""
+
 from src.const import BANK_MENU
 from src.enums import BankAction
 from src.handlers.pybank import PyBank
@@ -5,17 +10,28 @@ from src.utils.cli_utils import colored
 
 
 def bank():
+    """
+    Run the main PyBank CLI application loop.
+    
+    Displays the bank menu, accepts user input, and routes requests
+    to the appropriate PyBank methods. Continues until the user
+    chooses to exit the application.
+    """
     while True:
+        # Display the main menu
         print(BANK_MENU)
 
         try:
+            # Get and validate user choice
             user_choice = BankAction(int(input('\nPlease Enter Choice: ')))
         except ValueError:
             colored('Invalid Choice!!!', 'red')
             continue
 
+        # Create PyBank instance for this operation
         obj = PyBank()
 
+        # Route to appropriate handler based on user choice
         match user_choice:
             case BankAction.OPEN_ACCOUNT:
                 obj.register_account()

@@ -1,6 +1,13 @@
+"""
+Application constants for PyBank CLI.
+Contains database configuration and menu display.
+"""
+
+# Database configuration
 DB_NAME = 'pybank.db'
 DB_PATH = f"db/{DB_NAME}"
 
+# Main menu display
 BANK_MENU = """----------------------
 |       PyBank       |
 ----------------------
@@ -20,3 +27,4 @@ BANK_MENU = """----------------------
 ----------------------
 | 8 |   Close  App   |
 ----------------------"""
+
