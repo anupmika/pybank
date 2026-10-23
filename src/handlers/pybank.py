@@ -10,6 +10,10 @@ from src.sqlite_db import SqliteDB
 from src.validators.models import Account, User
 
 MAX_PIN_ATTEMPTS = 3
+ENTER_ACCOUNT_PROMPT = 'Enter Account Number: '
+ACCOUNT_NOT_FOUND = '❌ Error: Account number not found.'
+ACCOUNT_NOT_FOUND_RECORDS = '❌ Error: Account number not found in our records.'
+INVALID_AMOUNT = '❌ Error: Invalid amount entered. Please type a valid numeric number.'
 
 
 class PyBank:
@@ -26,7 +30,7 @@ class PyBank:
         row = self.cursor.fetchone()
 
         if row is None:
-            print('❌ Error: Account number not found in our records.')
+            print(ACCOUNT_NOT_FOUND_RECORDS)
             return False
 
         if not row[0]:
@@ -148,7 +152,7 @@ class PyBank:
             row = cursor.fetchone()
 
             if row is None:
-                print('❌ Error: Account number not found in our records.')
+                print(ACCOUNT_NOT_FOUND_RECORDS)
                 return
 
             account_data = {
@@ -264,7 +268,7 @@ class PyBank:
         cursor = self.cursor
 
         try:
-            target_acc = input('Enter Account Number: ')
+            target_acc = input(ENTER_ACCOUNT_PROMPT)
             if not self._verify_pin(target_acc):
                 return
 
@@ -277,7 +281,7 @@ class PyBank:
                     return
             except ValueError:
                 print(
-                    '❌ Error: Invalid amount entered. Please type a valid numeric number.'
+                    INVALID_AMOUNT
                 )
                 return
 
@@ -290,7 +294,7 @@ class PyBank:
             row = cursor.fetchone()
 
             if row is None:
-                print('❌ Error: Account number not found.')
+                print(ACCOUNT_NOT_FOUND)
                 return
 
             account_data = {
@@ -353,7 +357,7 @@ class PyBank:
         cursor = self.cursor
 
         try:
-            target_acc = input('Enter Account Number: ')
+            target_acc = input(ENTER_ACCOUNT_PROMPT)
             deposit_amount_str = input('Enter Amount to Deposit: ')
 
             try:
@@ -363,7 +367,7 @@ class PyBank:
                     return
             except ValueError:
                 print(
-                    '❌ Error: Invalid amount entered. Please type a valid numeric number.'
+                    INVALID_AMOUNT
                 )
                 return
 
@@ -376,7 +380,7 @@ class PyBank:
             row = cursor.fetchone()
 
             if row is None:
-                print('❌ Error: Account number not found.')
+                print(ACCOUNT_NOT_FOUND)
                 return
 
             account_data = {
@@ -436,7 +440,7 @@ class PyBank:
         cursor = self.cursor
 
         try:
-            target_acc = input('Enter Account Number: ')
+            target_acc = input(ENTER_ACCOUNT_PROMPT)
             if not self._verify_pin(target_acc):
                 return
 
@@ -449,7 +453,7 @@ class PyBank:
             row = cursor.fetchone()
 
             if row is None:
-                print('❌ Error: Account number not found.')
+                print(ACCOUNT_NOT_FOUND)
                 return
 
             account_data = {
@@ -525,7 +529,7 @@ class PyBank:
             row = cursor.fetchone()
 
             if row is None:
-                print('❌ Error: Account number not found.')
+                print(ACCOUNT_NOT_FOUND)
                 return
 
             account_data = {

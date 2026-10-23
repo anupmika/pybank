@@ -12,7 +12,7 @@ from src.sqlite_db import SqliteDB
 @pytest.fixture(autouse=True)
 def _reset_singleton(reset_singletons):
     """Ensure each test starts with a fresh singleton instance."""
-    yield
+    reset_singletons
 
 
 class TestSingletonBehaviour:
