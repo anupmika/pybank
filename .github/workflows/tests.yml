@@ -20,9 +20,5 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Create local .venv and install dependencies
-        run: |
-          python -m venv .venv
-          .venv/bin/pip install --no-cache-dir -e .
       - name: Run tests
-        run: .venv/bin/python -m pytest tests/ -v
+        run: just test
