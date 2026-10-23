@@ -1,8 +1,15 @@
+import re
 import sqlite3
 from datetime import datetime
+from getpass import getpass
+
 from pydantic import ValidationError
-from src.validators.models import User, Account, TransactionRecord
+
+from src.helpers.security import hash_pin, verify_pin
 from src.sqlite_db import SqliteDB
+from src.validators.models import Account, User
+
+MAX_PIN_ATTEMPTS = 3
 
 
 class PyBank:
@@ -10,6 +17,33 @@ class PyBank:
         db = SqliteDB()
         self.connect = db.db_connect()
         self.cursor = self.connect.cursor()
+
+    def _verify_pin(self, account_num) -> bool:
+        """Ask for the account PIN (3 attempts). Returns True only if it matches."""
+        self.cursor.execute(
+            "SELECT pin_hash FROM accounts WHERE account_num = ?", (account_num,)
+        )
+        row = self.cursor.fetchone()
+
+        if row is None:
+            print("❌ Error: Account number not found in our records.")
+            return False
+
+        if not row[0]:
+            print(
+                "❌ This account has no PIN (it was created before PIN login). "
+                "Please open a new account."
+            )
+            return False
+
+        for attempt in range(1, MAX_PIN_ATTEMPTS + 1):
+            if verify_pin(getpass("Enter 4-digit PIN: "), row[0]):
+                return True
+            left = MAX_PIN_ATTEMPTS - attempt
+            print(f"❌ Wrong PIN. {left} attempt(s) left.")
+
+        print("🔒 Too many wrong attempts. Access denied.")
+        return False
 
     def register_account(self):
         cursor = self.cursor
@@ -22,6 +56,15 @@ class PyBank:
         raw_address = input("Enter Address (Optional, press Enter to skip): ") or None
         raw_city = input("Enter City: ")
         raw_initial_bal = input("Enter Initial Balance: ")
+
+        pin = getpass("Set a 4-digit PIN: ")
+        confirm_pin = getpass("Confirm PIN: ")
+        if not re.fullmatch(r"\d{4}", pin) or pin != confirm_pin:
+            print(
+                "\n❌ Registration Failed! PIN must be exactly 4 digits "
+                "and both entries must match."
+            )
+            return
 
         user_input = {
             "aadhar_num": raw_aadhar_num,
@@ -56,10 +99,11 @@ class PyBank:
             }
             validated_account = Account(**account_input)
             account_dict = validated_account.model_dump()
+            account_dict["pin_hash"] = hash_pin(pin)
 
             account_query = """
-            INSERT INTO accounts (account_num, user_id, account_type, balance, currency, is_active, created_at)
-            VALUES (:account_num, :user_id, :account_type, :balance, :currency, :is_active, :created_at)
+            INSERT INTO accounts (account_num, user_id, account_type, balance, currency, is_active, created_at, pin_hash)
+            VALUES (:account_num, :user_id, :account_type, :balance, :currency, :is_active, :created_at, :pin_hash)
             """
             cursor.execute(account_query, account_dict)
 
@@ -83,7 +127,7 @@ class PyBank:
 
         except sqlite3.IntegrityError:
             print(
-                "\n❌ Database Error: This CNIC profile already exists in our system!"
+                "\n❌ Database Error: This Aadhar profile already exists in our system!"
             )
             self.connect.rollback()
 
@@ -92,6 +136,8 @@ class PyBank:
 
         try:
             target_acc = input("Enter your Account Number: ")
+            if not self._verify_pin(target_acc):
+                return
 
             query = """
             SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
@@ -138,6 +184,8 @@ class PyBank:
 
         try:
             target_acc = input("Enter Account Number to view full profile: ")
+            if not self._verify_pin(target_acc):
+                return
 
             query = """
             SELECT
@@ -217,6 +265,9 @@ class PyBank:
 
         try:
             target_acc = input("Enter Account Number: ")
+            if not self._verify_pin(target_acc):
+                return
+
             withdraw_amount_str = input("Enter Amount to Withdraw: ")
 
             try:
@@ -267,13 +318,16 @@ class PyBank:
                 INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp)
                 VALUES (?, ?, ?, ?, ?)
                 """
-            cursor.execute(transaction_query, (
-                account.account_num,
-                'withdraw',
-                amount_to_sub,
-                account.balance,
-                datetime.now().isoformat()
-            ))
+            cursor.execute(
+                transaction_query,
+                (
+                    account.account_num,
+                    "withdraw",
+                    amount_to_sub,
+                    account.balance,
+                    datetime.now().isoformat(),
+                ),
+            )
             self.connect.commit()
 
             print(
@@ -348,13 +402,16 @@ class PyBank:
                 INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp)
                 VALUES (?, ?, ?, ?, ?)
                 """
-            cursor.execute(transaction_query, (
-                account.account_num,
-                'deposit',
-                amount_to_add,
-                account.balance,
-                datetime.now().isoformat()
-            ))
+            cursor.execute(
+                transaction_query,
+                (
+                    account.account_num,
+                    "deposit",
+                    amount_to_add,
+                    account.balance,
+                    datetime.now().isoformat(),
+                ),
+            )
             self.connect.commit()
 
             print(
@@ -380,6 +437,8 @@ class PyBank:
 
         try:
             target_acc = input("Enter Account Number: ")
+            if not self._verify_pin(target_acc):
+                return
 
             query_select = """
                 SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
@@ -428,13 +487,17 @@ class PyBank:
                 f"Account Number : {target_acc}\n"
                 f"=============================================="
             )
-            print(f"{'#':<4} {'Type':<10} {'Amount':>12} {'Balance After':>14} {'Timestamp':<22}")
+            print(
+                f"{'#':<4} {'Type':<10} {'Amount':>12} {'Balance After':>14} {'Timestamp':<22}"
+            )
             print("-" * 66)
 
             for idx, txn in enumerate(transactions, start=1):
                 txn_type, amount, balance_after, timestamp = txn
-                sign = '+' if txn_type == 'deposit' else '-'
-                print(f"{idx:<4} {txn_type.capitalize():<10} {sign}{amount:>11,.2f} {balance_after:>14,.2f} {timestamp:<22}")
+                sign = "+" if txn_type == "deposit" else "-"
+                print(
+                    f"{idx:<4} {txn_type.capitalize():<10} {sign}{amount:>11,.2f} {balance_after:>14,.2f} {timestamp:<22}"
+                )
 
             print("=" * 66)
 
@@ -445,12 +508,13 @@ class PyBank:
         except Exception as err:
             print(f"❌ Failed to fetch transaction history: {err}")
 
-
     def close_account(self):
         cursor = self.cursor
 
         try:
             target_acc = input("Enter Account Number to Close: ")
+            if not self._verify_pin(target_acc):
+                return
 
             query_select = """
                 SELECT account_num, user_id, account_type, balance, currency, is_active, created_at
@@ -477,9 +541,7 @@ class PyBank:
             account = Account.model_validate(account_data)
 
             if not account.is_active:
-                print(
-                    "❌ Account is already closed/inactive."
-                )
+                print("❌ Account is already closed/inactive.")
                 return
 
             query_update = "UPDATE accounts SET is_active = 0 WHERE account_num = ?"

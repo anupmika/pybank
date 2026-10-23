@@ -56,12 +56,14 @@ name = "pybank"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "annotated-types" },
     { name = "colorama" },
     { name = "pydantic", extra = ["email"] },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "annotated-types", specifier = ">=0.8.0" },
     { name = "colorama", specifier = ">=0.4.6" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.13.4" },
 ]

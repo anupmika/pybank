@@ -1,7 +1,6 @@
-from src.handlers.pybank import PyBank
-from src.enums import BankAction
 from src.const import BANK_MENU
-from src.const import DB_PATH
+from src.enums import BankAction
+from src.handlers.pybank import PyBank
 from src.utils.cli_utils import colored
 
 

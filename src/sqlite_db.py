@@ -1,8 +1,8 @@
 import os
 import sqlite3
 
-from src.helpers.design import SingletonMeta
 from src.const import DB_PATH
+from src.helpers.design import SingletonMeta
 
 
 class SqliteDB(metaclass=SingletonMeta):
@@ -42,6 +42,7 @@ class SqliteDB(metaclass=SingletonMeta):
                 currency TEXT NOT NULL DEFAULT 'INR',
                 is_active INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL,
+                pin_hash TEXT,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             );
             CREATE TABLE IF NOT EXISTS transactions (
@@ -56,5 +57,12 @@ class SqliteDB(metaclass=SingletonMeta):
             );
 
             """)
+
+        # Older database files were created before PIN login existed:
+        # add the pin_hash column to them if it is missing.
+        columns = [row[1] for row in conn.execute("PRAGMA table_info(accounts)")]
+        if "pin_hash" not in columns:
+            conn.execute("ALTER TABLE accounts ADD COLUMN pin_hash TEXT")
+
         conn.commit()
         return conn

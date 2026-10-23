@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class BankAction(Enum):
     OPEN_ACCOUNT = 1
     DEPOSIT_MONEY = 2
