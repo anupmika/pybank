@@ -22,10 +22,10 @@ from src.helpers.design import SingletonMeta
 def tmp_db_path() -> Iterator[str]:
     """
     Create and yield a temporary SQLite database file path.
-    
+
     Automatically cleans up the database file and any WAL/SHM sidecar
     files after the test completes.
-    
+
     Yields:
         str: Path to a temporary database file.
     """
@@ -47,10 +47,10 @@ def tmp_db_path() -> Iterator[str]:
 def reset_singletons() -> Iterator[None]:
     """
     Clear all SingletonMeta registries before and after each test.
-    
+
     Ensures each test starts from a clean slate with no cached singleton
     instances from previous tests.
-    
+
     Yields:
         None: Control returns to the test after clearing registries.
     """
@@ -67,12 +67,12 @@ def reset_singletons() -> Iterator[None]:
 def db_path(tmp_db_path: str, monkeypatch, reset_singletons) -> str:
     """
     Point the application to use the temporary test database.
-    
+
     Args:
         tmp_db_path: Path to temporary database from fixture.
         monkeypatch: Pytest monkeypatch fixture.
         reset_singletons: Fixture to reset singleton instances.
-        
+
     Returns:
         str: Path to the test database.
     """
@@ -86,10 +86,10 @@ def db_path(tmp_db_path: str, monkeypatch, reset_singletons) -> str:
 def db_conn(db_path: str) -> Iterator[sqlite3.Connection]:
     """
     Provide a raw SQLite connection to the test database.
-    
+
     Args:
         db_path: Path to the test database.
-        
+
     Yields:
         sqlite3.Connection: Active database connection.
     """
@@ -102,11 +102,11 @@ def db_conn(db_path: str) -> Iterator[sqlite3.Connection]:
 def bank(db_path: str, reset_singletons):
     """
     Create a PyBank handler instance backed by the test database.
-    
+
     Args:
         db_path: Path to the test database.
         reset_singletons: Fixture to reset singleton instances.
-        
+
     Returns:
         PyBank: Configured PyBank handler for testing.
     """
@@ -130,7 +130,7 @@ def insert_user(
 ) -> int:
     """
     Insert a user record into the database for testing.
-    
+
     Args:
         conn: Active database connection.
         aadhar_num: 12-digit Aadhar number.
@@ -142,7 +142,7 @@ def insert_user(
         address: User's address (optional).
         city: User's city.
         initial_balance: Initial balance.
-        
+
     Returns:
         int: ID of the inserted user.
     """
@@ -176,7 +176,7 @@ def insert_account(
 ) -> int:
     """
     Insert an account record into the database for testing.
-    
+
     Args:
         conn: Active database connection.
         user_id: ID of the associated user.
@@ -186,7 +186,7 @@ def insert_account(
         currency: Currency code.
         is_active: Whether account is active (1) or inactive (0).
         pin_hash: Hashed PIN (optional).
-        
+
     Returns:
         int: ID of the inserted account.
     """
@@ -207,4 +207,3 @@ def insert_account(
     lastrowid = cur.lastrowid
     assert lastrowid is not None
     return lastrowid
-

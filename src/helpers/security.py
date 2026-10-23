@@ -13,10 +13,10 @@ _ITERATIONS = 200_000
 def hash_pin(pin: str) -> str:
     """
     Hash a PIN using PBKDF2-HMAC-SHA256.
-    
+
     Args:
         pin: The 4-digit PIN to hash.
-        
+
     Returns:
         A string in format 'salt:hash' (both hex encoded).
         The PIN itself is never stored.
@@ -29,11 +29,11 @@ def hash_pin(pin: str) -> str:
 def verify_pin(pin: str, stored: str) -> bool:
     """
     Verify a typed PIN against a stored hash.
-    
+
     Args:
         pin: The PIN entered by the user.
         stored: Stored hash string in format 'salt:hash'.
-        
+
     Returns:
         True if the PIN matches, False otherwise.
     """
@@ -45,4 +45,3 @@ def verify_pin(pin: str, stored: str) -> bool:
     except ValueError:
         return False
     return hmac.compare_digest(digest.hex(), digest_hex)
-

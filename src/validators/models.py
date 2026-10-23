@@ -47,4 +47,3 @@ class TransactionRecord(BaseModel):
     amount: float = Field(ge=0)
     balance_after: float = Field(alias='balanceAfter')
     timestamp: datetime
-

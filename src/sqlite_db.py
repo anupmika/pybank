@@ -13,7 +13,7 @@ from src.helpers.design import SingletonMeta
 class SqliteDB(metaclass=SingletonMeta):
     """
     Provides a Singleton interface for SQLite database connections.
-    
+
     Ensures only one database connection instance exists throughout
     the application lifecycle.
     """
@@ -21,21 +21,21 @@ class SqliteDB(metaclass=SingletonMeta):
     def db_connect(self):
         """
         Create and return a SQLite database connection.
-        
+
         Creates necessary database files and directories, initializes
         the schema with users, accounts, and transactions tables,
         and performs any required migrations.
-        
+
         Returns:
             sqlite3.Connection: A configured SQLite database connection.
         """
         # Ensure database directory exists
         os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-        
+
         # Create database connection with WAL mode for better concurrency
         conn = sqlite3.connect(DB_PATH)
         conn.execute('PRAGMA journal_mode=WAL')
-        
+
         # Create tables if they don't exist
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS users (
@@ -83,4 +83,3 @@ class SqliteDB(metaclass=SingletonMeta):
 
         conn.commit()
         return conn
-

@@ -16,7 +16,7 @@ from src.sqlite_db import SqliteDB
 def _reset_singleton(reset_singletons):
     """
     Ensure each test starts with a fresh singleton instance.
-    
+
     Args:
         reset_singletons: Fixture to clear singleton registries.
     """
@@ -25,7 +25,7 @@ def _reset_singleton(reset_singletons):
 
 class TestSingletonBehaviour:
     """Test suite for SqliteDB singleton pattern."""
-    
+
     def test_same_instance_returned(self, db_path):
         """Test that multiple instantiations return the same instance."""
         first = SqliteDB()
@@ -74,4 +74,3 @@ class TestSingletonBehaviour:
         mode = conn.execute('PRAGMA journal_mode').fetchone()[0]
         conn.close()
         assert mode.lower() == 'wal'
-

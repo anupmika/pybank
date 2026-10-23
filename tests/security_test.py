@@ -12,7 +12,7 @@ from src.helpers.security import hash_pin, verify_pin
 
 class TestHashPin:
     """Test suite for PIN hashing and verification."""
-    
+
     def test_returns_salt_and_digest_separated_by_colon(self):
         """Test that hash format is 'salt:hash' with correct lengths."""
         result = hash_pin('1234')
@@ -57,4 +57,3 @@ class TestHashPin:
         """Test that the original PIN is not present in the stored hash."""
         stored = hash_pin('5555')
         assert '5555' not in stored
-

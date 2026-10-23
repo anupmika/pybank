@@ -12,7 +12,7 @@ from src.utils.cli_utils import colored
 def bank():
     """
     Run the main PyBank CLI application loop.
-    
+
     Displays the bank menu, accepts user input, and routes requests
     to the appropriate PyBank methods. Continues until the user
     chooses to exit the application.

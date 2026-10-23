@@ -15,7 +15,7 @@ from src.validators.models import Account, TransactionRecord, User
 
 class TestUserValidation:
     """Test suite for User model validation."""
-    
+
     def test_valid_user_is_accepted(self):
         """Test that valid user data passes validation."""
         user = User(
@@ -189,7 +189,7 @@ class TestUserValidation:
 
 class TestAccountValidation:
     """Test suite for Account model validation."""
-    
+
     def test_valid_account_is_accepted(self):
         """Test that valid account data passes validation with defaults."""
         account = Account(
@@ -225,7 +225,7 @@ class TestAccountValidation:
 
 class TestTransactionRecordValidation:
     """Test suite for TransactionRecord model validation."""
-    
+
     def test_valid_transaction_is_accepted(self):
         """Test that valid transaction data passes validation."""
         txn = TransactionRecord(
@@ -250,4 +250,3 @@ class TestTransactionRecordValidation:
                 balanceAfter=1000.0,
                 timestamp='2024-01-01T12:00:00',
             )
-

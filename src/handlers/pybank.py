@@ -26,11 +26,11 @@ INVALID_AMOUNT = '❌ Error: Invalid amount entered. Please type a valid numeric
 class PyBank:
     """
     Main banking operations handler.
-    
+
     Manages database connections and provides methods for all banking
     operations including account registration, transactions, and inquiries.
     """
-    
+
     def __init__(self):
         """Initialize PyBank with database connection."""
         db = SqliteDB()
@@ -40,10 +40,10 @@ class PyBank:
     def _verify_pin(self, account_num) -> bool:
         """
         Ask for the account PIN with up to 3 attempts.
-        
+
         Args:
             account_num: The account number to verify PIN for.
-            
+
         Returns:
             True if PIN matches, False otherwise.
         """
@@ -76,10 +76,10 @@ class PyBank:
     def _fetch_account(self, target_acc: str):
         """
         Fetch account by number and return an Account model.
-        
+
         Args:
             target_acc: The account number to fetch.
-            
+
         Returns:
             Account model instance if found, None otherwise.
         """

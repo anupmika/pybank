@@ -11,12 +11,12 @@ init(autoreset=True)
 def colored(text: str, color_name: str) -> str:
     """
     Print text in the specified color and return the colored string.
-    
+
     Args:
         text: The text to be colored.
         color_name: Color name (e.g., 'red', 'green', 'yellow', 'blue').
                     Case-insensitive, falls back to no color if invalid.
-        
+
     Returns:
         The text wrapped in ANSI color escape codes.
     """
@@ -28,4 +28,3 @@ def colored(text: str, color_name: str) -> str:
 
     print(f"{color_code}{text}{Style.RESET_ALL}")
     return f"{color_code}{text}{Style.RESET_ALL}"
-
