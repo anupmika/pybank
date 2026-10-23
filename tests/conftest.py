@@ -15,14 +15,14 @@ from src.sqlite_db import SqliteDB
 @pytest.fixture
 def tmp_db_path() -> str:
     """Return a path to a temporary SQLite database file."""
-    fd, path = tempfile.mkstemp(suffix=".db", prefix="pybank_test_")
+    fd, path = tempfile.mkstemp(suffix='.db', prefix='pybank_test_')
     os.close(fd)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     yield path
     if os.path.exists(path):
         os.remove(path)
     # Also remove WAL / SHM sidecar files if any were created.
-    for suffix in ("-wal", "-shm"):
+    for suffix in ('-wal', '-shm'):
         sidecar = path + suffix
         if os.path.exists(sidecar):
             os.remove(sidecar)
@@ -41,8 +41,8 @@ def reset_singletons() -> Iterator[None]:
 @pytest.fixture
 def db_path(tmp_db_path: str, monkeypatch, reset_singletons) -> str:
     """Point the app at a temporary database and return that path."""
-    monkeypatch.setattr("src.sqlite_db.DB_PATH", tmp_db_path)
-    monkeypatch.setattr("src.const.DB_PATH", tmp_db_path)
+    monkeypatch.setattr('src.sqlite_db.DB_PATH', tmp_db_path)
+    monkeypatch.setattr('src.const.DB_PATH', tmp_db_path)
     return tmp_db_path
 
 
@@ -65,14 +65,14 @@ def bank(db_path: str, reset_singletons):
 def insert_user(
     conn: sqlite3.Connection,
     *,
-    aadhar_num: str = "123456789012",
-    name: str = "Alice Example",
-    email: str | None = "alice@example.com",
-    phone: str = "9876543210",
+    aadhar_num: str = '123456789012',
+    name: str = 'Alice Example',
+    email: str | None = 'alice@example.com',
+    phone: str = '9876543210',
     age: int = 30,
-    father_name: str = "Bob Example",
-    address: str | None = "123 Main St",
-    city: str = "Metropolis",
+    father_name: str = 'Bob Example',
+    address: str | None = '123 Main St',
+    city: str = 'Metropolis',
     initial_balance: float = 1000.0,
 ) -> int:
     """Insert a user row and return its id."""
@@ -96,9 +96,9 @@ def insert_account(
     *,
     user_id: int,
     account_num: int | None = None,
-    account_type: str = "savings",
+    account_type: str = 'savings',
     balance: float = 0.0,
-    currency: str = "INR",
+    currency: str = 'INR',
     is_active: int = 1,
     pin_hash: str | None = None,
 ) -> int:

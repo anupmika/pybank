@@ -37,25 +37,25 @@ class TestSingletonBehaviour:
             )
         }
         conn.close()
-        assert {"users", "accounts", "transactions"}.issubset(tables)
+        assert {'users', 'accounts', 'transactions'}.issubset(tables)
 
     def test_pin_hash_column_added_on_old_schema(self, db_path, monkeypatch):
         # Simulate an older database without the pin_hash column.
         instance = SqliteDB()
         conn = instance.db_connect()
-        conn.execute("ALTER TABLE accounts DROP COLUMN pin_hash")
+        conn.execute('ALTER TABLE accounts DROP COLUMN pin_hash')
         conn.commit()
         conn.close()
 
         # Re-connect — the bootstrap should re-add the missing column.
         conn2 = instance.db_connect()
-        columns = [row[1] for row in conn2.execute("PRAGMA table_info(accounts)")]
+        columns = [row[1] for row in conn2.execute('PRAGMA table_info(accounts)')]
         conn2.close()
-        assert "pin_hash" in columns
+        assert 'pin_hash' in columns
 
     def test_wal_mode_is_enabled(self, db_path):
         instance = SqliteDB()
         conn = instance.db_connect()
-        mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+        mode = conn.execute('PRAGMA journal_mode').fetchone()[0]
         conn.close()
-        assert mode.lower() == "wal"
+        assert mode.lower() == 'wal'
