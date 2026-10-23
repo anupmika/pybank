@@ -10,6 +10,6 @@ def colored(text: str, color_name: str) -> str:
     color_key = color_name.strip().upper()
 
     # Safely fetch the color from Fore, default to empty string if not found
-    color_code = getattr(Fore, color_key, "")
+    color_code = getattr(Fore, color_key, '')
 
     print(f"{color_code}{text}{Style.RESET_ALL}")

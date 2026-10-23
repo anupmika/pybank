@@ -9,9 +9,9 @@ def bank():
         print(BANK_MENU)
 
         try:
-            user_choice = BankAction(int(input("\nPlease Enter Choice: ")))
+            user_choice = BankAction(int(input('\nPlease Enter Choice: ')))
         except ValueError:
-            colored("Invalid Choice!!!", "red")
+            colored('Invalid Choice!!!', 'red')
             continue
 
         obj = PyBank()
@@ -32,5 +32,5 @@ def bank():
             case BankAction.VIEW_ACCOUNT:
                 obj.view_data()
             case BankAction.CLOSE_APP:
-                print("Exiting!!!")
+                print('Exiting!!!')
                 return

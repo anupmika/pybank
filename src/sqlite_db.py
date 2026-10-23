@@ -16,7 +16,7 @@ class SqliteDB(metaclass=SingletonMeta):
         """
         os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
         conn = sqlite3.connect(DB_PATH)
-        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute('PRAGMA journal_mode=WAL')
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS users (
 
@@ -60,9 +60,9 @@ class SqliteDB(metaclass=SingletonMeta):
 
         # Older database files were created before PIN login existed:
         # add the pin_hash column to them if it is missing.
-        columns = [row[1] for row in conn.execute("PRAGMA table_info(accounts)")]
-        if "pin_hash" not in columns:
-            conn.execute("ALTER TABLE accounts ADD COLUMN pin_hash TEXT")
+        columns = [row[1] for row in conn.execute('PRAGMA table_info(accounts)')]
+        if 'pin_hash' not in columns:
+            conn.execute('ALTER TABLE accounts ADD COLUMN pin_hash TEXT')
 
         conn.commit()
         return conn

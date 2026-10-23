@@ -1,4 +1,4 @@
-DB_NAME = "pybank.db"
+DB_NAME = 'pybank.db'
 DB_PATH = f"db/{DB_NAME}"
 
 BANK_MENU = """----------------------

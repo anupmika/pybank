@@ -76,10 +76,10 @@ Transaction management is handled with atomic commits on success and rollbacks o
 
 | **Description** | **Page No.** |
 | --------------- | ------------ |
-| Declaration     | ii           |
-| Certificate     | iii          |
-| Acknowledgement | iv           |
-| Abstract        | v            |
+| Declaration | ii |
+| Certificate | iii |
+| Acknowledgement | iv |
+| Abstract | v |
 | Chapter 1- Introduction | 1 |
 | Chapter 2- Literature Review and System Analysis | 3 |
 | Chapter 3- System Design and Architecture | 5 |
@@ -580,11 +580,13 @@ One limitation is the single-user, single-process design, which is adequate for 
 ## Appendix A: System Requirements
 
 ### Hardware Requirements
+
 - Processor: Intel Core i3 or equivalent
 - RAM: 4 GB minimum
 - Storage: 100 MB available space
 
 ### Software Requirements
+
 - Operating System: Windows 10+, macOS 11+, or Linux
 - Python: 3.12 or higher
 - Dependencies: `colorama>=0.4.6`, `pydantic[email]>=2.13.4`
