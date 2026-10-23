@@ -24,5 +24,11 @@ jobs:
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
       - name: Install just
         uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3
-      - name: Run tests
-        run: just test
+      - name: Run tests with coverage
+        run: just coverage
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage/coverage.xml

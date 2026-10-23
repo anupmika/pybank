@@ -1,6 +1,7 @@
 TOP_DIR := `git rev-parse --show-toplevel`
 SRC_DIR := TOP_DIR / "src"
 TESTS_DIR := TOP_DIR / "tests"
+COV_DIR := TOP_DIR / "coverage"
 
 [private]
 default:
@@ -18,8 +19,12 @@ run: sync
 test: sync
     @uv run --group dev pytest {{ TESTS_DIR }} -v
 
+# Run tests with coverage report
+cov: sync
+    @uv run --group dev pytest {{ TESTS_DIR }} -v --cov-report=term-missing --cov-report=html:{{ COV_DIR }} --cov-report=xml:{{ COV_DIR }}/coverage.xml
+
 # Remove the local environment and generated Python caches
 clean:
     @uv clean
-    @rm -rf __pycache__ .pytest_cache .mypy_cache .venv
+    @rm -rf __pycache__ .pytest_cache .mypy_cache .venv {{ COV_DIR }}
     @find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".mypy_cache" \) -prune -exec rm -rf {} +
