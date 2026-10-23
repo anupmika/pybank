@@ -1,7 +1,7 @@
 [project]
 name = "pybank"
 version = "0.1.0"
-description = "Add your description here"
+description = "A terminal-based Python banking system demonstrating clean architecture, object-oriented design, pydantic data validation, SQLite persistence, transaction management, and CLI error handling."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
