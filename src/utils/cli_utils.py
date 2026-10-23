@@ -13,3 +13,4 @@ def colored(text: str, color_name: str) -> str:
     color_code = getattr(Fore, color_key, '')
 
     print(f"{color_code}{text}{Style.RESET_ALL}")
+    return f"{color_code}{text}{Style.RESET_ALL}"

@@ -13,7 +13,7 @@ from src.sqlite_db import SqliteDB
 
 
 @pytest.fixture
-def tmp_db_path() -> str:
+def tmp_db_path() -> Iterator[str]:
     """Return a path to a temporary SQLite database file."""
     fd, path = tempfile.mkstemp(suffix='.db', prefix='pybank_test_')
     os.close(fd)
@@ -47,7 +47,7 @@ def db_path(tmp_db_path: str, monkeypatch, reset_singletons) -> str:
 
 
 @pytest.fixture
-def db_conn(db_path: str) -> sqlite3.Connection:
+def db_conn(db_path: str) -> Iterator[sqlite3.Connection]:
     """Return a raw SQLite connection to the test database."""
     conn = sqlite3.connect(db_path)
     yield conn
@@ -88,7 +88,9 @@ def insert_user(
          initial_balance),
     )
     conn.commit()
-    return cur.lastrowid
+    lastrowid = cur.lastrowid
+    assert lastrowid is not None
+    return lastrowid
 
 
 def insert_account(
@@ -117,4 +119,6 @@ def insert_account(
          is_active, pin_hash),
     )
     conn.commit()
-    return cur.lastrowid
+    lastrowid = cur.lastrowid
+    assert lastrowid is not None
+    return lastrowid

@@ -8,7 +8,7 @@ class SingletonMeta(type):
     without modifying the class itself.
     """
 
-    _instances = {}
+    _instances: dict[type, object] = {}
 
     def __call__(cls, *args, **kwargs):
         """
