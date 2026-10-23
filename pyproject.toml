@@ -9,3 +9,8 @@ dependencies = [
     "colorama>=0.4.6",
     "pydantic[email]>=2.13.4",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
