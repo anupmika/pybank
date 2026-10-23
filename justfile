@@ -12,7 +12,7 @@ sync:
 
 # Run the test target
 test: sync
-    @PYTHONPATH={{ TOP_DIR }} uv run --group dev pytest {{ TESTS_DIR }} -v
+    @uv run --group dev pytest {{ TESTS_DIR }} -v
 
 # Remove the local environment and generated Python caches
 clean:
