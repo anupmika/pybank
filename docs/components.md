@@ -42,7 +42,7 @@ python main.py
 
 ## Constants
 
-### `src/const.py`
+### Constants (`src/const.py`)
 
 | Symbol | Type | Description |
 | --- | --- | --- |
