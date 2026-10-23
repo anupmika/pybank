@@ -18,7 +18,7 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-addopts = "--cov=src --cov-report=term-missing --cov-report=html:coverage"
+addopts = "--cov=src --cov-report=term-missing --cov-report=html:coverage --cov-report=lcov:coverage/lcov.info"
 
 [tool.coverage.run]
 source = ["src"]

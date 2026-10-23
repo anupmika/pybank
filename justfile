@@ -21,7 +21,7 @@ test: sync
 
 # Run tests with coverage report
 coverage: sync
-    @uv run --group dev pytest {{ TESTS_DIR }} -v --cov-report=term-missing --cov-report=html:{{ COV_DIR }} --cov-report=xml:{{ COV_DIR }}/coverage.xml
+    @uv run --group dev pytest {{ TESTS_DIR }} -v --cov-report=term-missing --cov-report=html:{{ COV_DIR }} --cov-report=xml:{{ COV_DIR }}/coverage.xml --cov-report=lcov:{{ COV_DIR }}/lcov.info
 
 # Remove the local environment and generated Python caches
 clean:
