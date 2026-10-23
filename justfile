@@ -8,7 +8,11 @@ default:
 
 # Install or update project dependencies with `uv`
 sync:
-    @uv sync --no-cache
+    @uv sync --no-cache --quiet
+
+# Run the main application entrypoint
+run: sync
+    @uv run main.py
 
 # Run the test target
 test: sync
