@@ -1,6 +1,7 @@
 # PyBank
 
 [![Python](https://img.shields.io/badge/python-3.12+-blue?logo=python)](https://www.python.org/)
+[![codecov](https://codecov.io/github/anupmika/pybank/graph/badge.svg?token=976A6T3HSC)](https://codecov.io/github/anupmika/pybank)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 A terminal-based Python banking system demonstrating clean architecture,

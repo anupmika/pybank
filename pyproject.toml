@@ -1,10 +1,30 @@
 [project]
 name = "pybank"
 version = "0.1.0"
-description = "Add your description here"
+description = "A terminal-based Python banking system demonstrating clean architecture, object-oriented design, pydantic data validation, SQLite persistence, transaction management, and CLI error handling."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
+    "annotated-types>=0.8.0",
     "colorama>=0.4.6",
     "pydantic[email]>=2.14.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "--cov=src --cov-report=term-missing --cov-report=html:coverage --cov-report=lcov:coverage/lcov.info"
+
+[tool.coverage.run]
+source = ["src"]
+data_file = "coverage/.coverage"
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

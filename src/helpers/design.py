@@ -1,3 +1,9 @@
+"""
+Design pattern implementations.
+Contains reusable design patterns like Singleton.
+"""
+
+
 class SingletonMeta(type):
     """
     Metaclass that ensures only one instance of a class is created.
@@ -8,7 +14,7 @@ class SingletonMeta(type):
     without modifying the class itself.
     """
 
-    _instances = {}
+    _instances: dict[type, object] = {}
 
     def __call__(cls, *args, **kwargs):
         """
@@ -16,6 +22,13 @@ class SingletonMeta(type):
 
         Any subsequent calls to create an instance of the same class will
         return the previously created instance.
+
+        Args:
+            *args: Positional arguments passed to the class constructor.
+            **kwargs: Keyword arguments passed to the class constructor.
+
+        Returns:
+            object: The singleton instance of the class.
         """
         if cls not in cls._instances:
             instance = super().__call__(*args, **kwargs)

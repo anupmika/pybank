@@ -42,13 +42,23 @@ python main.py
 
 ## Constants
 
-### `src/const.py`
+### Constants (`src/const.py`)
 
 | Symbol | Type | Description |
 | --- | --- | --- |
 | `DB_NAME` | `str` | `"pybank.db"` — the SQLite file name. |
 | `DB_PATH` | `str` | `"db/pybank.db"` — relative path to the database file. The `db/` directory is created on demand by `SqliteDB.db_connect()`. |
 | `BANK_MENU` | `str` | The multi-line ASCII menu banner printed on every loop iteration (choices 1–8). |
+
+### Constants (`src/handlers/pybank.py`)
+
+| Symbol | Type | Description |
+| --- | --- | --- |
+| `MAX_PIN_ATTEMPTS` | `int` | Maximum PIN verification attempts before access is denied (`3`). |
+| `ENTER_ACCOUNT_PROMPT` | `str` | The input prompt reused for account number lookup (`'Enter Account Number: '`). |
+| `ACCOUNT_NOT_FOUND` | `str` | Error message printed when an account row is missing (`'❌ Error: Account number not found.'`). |
+| `ACCOUNT_NOT_FOUND_RECORDS` | `str` | Error message printed when an account row is missing in PIN verification (`'❌ Error: Account number not found in our records.'`). |
+| `INVALID_AMOUNT` | `str` | Error message printed when a non-numeric amount is entered (`'❌ Error: Invalid amount entered. Please type a valid numeric number.'`). |
 
 ---
 
@@ -58,14 +68,14 @@ python main.py
 
 ```python
 class BankAction(Enum):
-    OPEN_ACCOUNT   = 1
-    DEPOSIT_MONEY  = 2
+    OPEN_ACCOUNT = 1
+    DEPOSIT_MONEY = 2
     WITHDRAW_MONEY = 3
-    VIEW_BALANCE   = 4
-    VIEW_HISTORY   = 5
-    CLOSE_ACCOUNT  = 6   # stub — not yet implemented
-    VIEW_ACCOUNT   = 7
-    CLOSE_APP      = 8
+    VIEW_BALANCE = 4
+    VIEW_HISTORY = 5
+    CLOSE_ACCOUNT = 6  # stub — not yet implemented
+    VIEW_ACCOUNT = 7
+    CLOSE_APP = 8
 ```
 
 The enum values mirror the number the user types at the menu. `app.py` wraps

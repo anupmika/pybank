@@ -161,10 +161,10 @@ Please Enter Choice: 5
 Enter Account Number: 500001
 
 ===============================================================================
-                         🏦 PYBANK OFFICIAL PASSBOOK STATEMENT                          
+                         🏦 PYBANK OFFICIAL PASSBOOK STATEMENT
  ACCOUNT NUMBER: 500001                   | CURRENCY: INR
 ===============================================================================
-  DATE/TIME         PARTICULARS            | DEPOSIT (+) | WITHDRAW(-) |    BALANCE    
+  DATE/TIME         PARTICULARS            | DEPOSIT (+) | WITHDRAW(-) |    BALANCE
 -------------------------------------------------------------------------------
 Initial Opening Deposit                    |             |             |      15,000.00
 ===============================================================================
