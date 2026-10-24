@@ -40,7 +40,7 @@ ENV XDG_CACHE_HOME=/tmp/.cache
 COPY pyproject.toml ./
 
 # Install dependencies into a local folder
-RUN uv sync --no-cache
+RUN uv sync --no-cache --frozen
 
 # Copy source code
 COPY src/ ./
@@ -56,7 +56,7 @@ EXPOSE 8501
 # Switch to non-root user
 USER nonroot
 
-ENTRYPOINT [ "uv", "run", \
+ENTRYPOINT [ "uv", "run", "--no-build", "--frozen", \
   "streamlit", "run", "app.py", \
   "--server.port=8501", \
   "--server.address=0.0.0.0", \

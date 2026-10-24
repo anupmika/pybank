@@ -14,6 +14,20 @@ from src.helpers.security import hash_pin, verify_pin
 from src.sqlite_db import SqliteDB
 from src.validators.models import Account, User
 
+# Menu options
+OPEN_ACCOUNT = 'Open Account'
+WITHDRAW_MONEY = 'Withdraw Money'
+DEPOSIT_MONEY = 'Deposit Money'
+VIEW_BALANCE = 'View Balance'
+VIEW_TRANSACTION_HISTORY = 'View Transaction History'
+VIEW_ACCOUNT_DETAILS = 'View Account Details'
+CLOSE_ACCOUNT = 'Close Account'
+ACCOUNT_NOT_FOUND = 'Account number not found.'
+ACCOUNT_NUMBER = 'Account Number'
+SELECT_ACCOUNT_BY_NUM = 'SELECT account_num, user_id, account_type, balance, currency, is_active, created_at FROM accounts WHERE account_num = ?'
+FOUR_DIGIT_PIN = '4-digit PIN'
+SET_FOUR_DIGIT_PIN = 'Set 4-digit PIN'
+
 # Initialize database
 db = SqliteDB()
 conn = db.db_connect()
@@ -36,31 +50,31 @@ def main():
         'Select Operation',
         [
             'Home',
-            'Open Account',
-            'Deposit Money',
-            'Withdraw Money',
-            'View Balance',
-            'View Transaction History',
-            'View Account Details',
-            'Close Account',
+            OPEN_ACCOUNT,
+            DEPOSIT_MONEY,
+            WITHDRAW_MONEY,
+            VIEW_BALANCE,
+            VIEW_TRANSACTION_HISTORY,
+            VIEW_ACCOUNT_DETAILS,
+            CLOSE_ACCOUNT,
         ],
     )
 
     if menu == 'Home':
         show_home()
-    elif menu == 'Open Account':
+    elif menu == OPEN_ACCOUNT:
         show_open_account()
-    elif menu == 'Deposit Money':
+    elif menu == DEPOSIT_MONEY:
         show_deposit()
-    elif menu == 'Withdraw Money':
+    elif menu == WITHDRAW_MONEY:
         show_withdraw()
-    elif menu == 'View Balance':
+    elif menu == VIEW_BALANCE:
         show_balance()
-    elif menu == 'View Transaction History':
+    elif menu == VIEW_TRANSACTION_HISTORY:
         show_history()
-    elif menu == 'View Account Details':
+    elif menu == VIEW_ACCOUNT_DETAILS:
         show_account_details()
-    elif menu == 'Close Account':
+    elif menu == CLOSE_ACCOUNT:
         show_close_account()
 
 
@@ -101,10 +115,10 @@ def show_open_account():
             initial_balance = st.number_input(
                 'Initial Balance (INR)', min_value=0.0, step=100.0
             )
-            pin = st.text_input('Set 4-digit PIN', type='password', max_chars=4)
+            pin = st.text_input(SET_FOUR_DIGIT_PIN, type='password', max_chars=4)
             confirm_pin = st.text_input('Confirm PIN', type='password', max_chars=4)
 
-        submitted = st.form_submit_button('Open Account')
+        submitted = st.form_submit_button(OPEN_ACCOUNT)
 
         if submitted:
             if not re.fullmatch(r'\d{4}', pin) or pin != confirm_pin:
@@ -185,7 +199,7 @@ def verify_pin_for_account(account_num, pin):
     )
     row = cursor.fetchone()
     if row is None:
-        return False, 'Account number not found.'
+        return False, ACCOUNT_NOT_FOUND
     if not row[0]:
         return False, 'This account has no PIN.'
     if verify_pin(pin, row[0]):
@@ -194,10 +208,10 @@ def verify_pin_for_account(account_num, pin):
 
 
 def show_deposit():
-    st.header('Deposit Money')
+    st.header(DEPOSIT_MONEY)
 
     with st.form('deposit_form'):
-        account_num = st.text_input('Account Number')
+        account_num = st.text_input(ACCOUNT_NUMBER)
         amount = st.number_input('Amount to Deposit (INR)', min_value=0.01, step=100.0)
         submitted = st.form_submit_button('Deposit')
 
@@ -205,7 +219,7 @@ def show_deposit():
             try:
                 # Fetch account
                 cursor.execute(
-                    'SELECT account_num, user_id, account_type, balance, currency, is_active, created_at FROM accounts WHERE account_num = ?',
+                    SELECT_ACCOUNT_BY_NUM,
                     (account_num,),
                 )
                 row = cursor.fetchone()
@@ -258,11 +272,11 @@ def show_deposit():
 
 
 def show_withdraw():
-    st.header('Withdraw Money')
+    st.header(WITHDRAW_MONEY)
 
     with st.form('withdraw_form'):
-        account_num = st.text_input('Account Number')
-        pin = st.text_input('4-digit PIN', type='password', max_chars=4)
+        account_num = st.text_input(ACCOUNT_NUMBER)
+        pin = st.text_input(FOUR_DIGIT_PIN, type='password', max_chars=4)
         amount = st.number_input('Amount to Withdraw (INR)', min_value=0.01, step=100.0)
         submitted = st.form_submit_button('Withdraw')
 
@@ -274,7 +288,7 @@ def show_withdraw():
 
             try:
                 cursor.execute(
-                    'SELECT account_num, user_id, account_type, balance, currency, is_active, created_at FROM accounts WHERE account_num = ?',
+                    SELECT_ACCOUNT_BY_NUM,
                     (account_num,),
                 )
                 row = cursor.fetchone()
@@ -327,12 +341,12 @@ def show_withdraw():
 
 
 def show_balance():
-    st.header('View Balance')
+    st.header(VIEW_BALANCE)
 
     with st.form('balance_form'):
-        account_num = st.text_input('Account Number')
-        pin = st.text_input('4-digit PIN', type='password', max_chars=4)
-        submitted = st.form_submit_button('View Balance')
+        account_num = st.text_input(ACCOUNT_NUMBER)
+        pin = st.text_input(FOUR_DIGIT_PIN, type='password', max_chars=4)
+        submitted = st.form_submit_button(VIEW_BALANCE)
 
         if submitted:
             ok, msg = verify_pin_for_account(account_num, pin)
@@ -342,12 +356,12 @@ def show_balance():
 
             try:
                 cursor.execute(
-                    'SELECT account_num, user_id, account_type, balance, currency, is_active, created_at FROM accounts WHERE account_num = ?',
+                    SELECT_ACCOUNT_BY_NUM,
                     (account_num,),
                 )
                 row = cursor.fetchone()
                 if row is None:
-                    st.error('Account not found.')
+                    st.error(ACCOUNT_NOT_FOUND)
                     return
                 account_data = {
                     'account_num': row[0],
@@ -374,8 +388,8 @@ def show_history():
     st.header('Transaction History')
 
     with st.form('history_form'):
-        account_num = st.text_input('Account Number')
-        pin = st.text_input('4-digit PIN', type='password', max_chars=4)
+        account_num = st.text_input(ACCOUNT_NUMBER)
+        pin = st.text_input(FOUR_DIGIT_PIN, type='password', max_chars=4)
         submitted = st.form_submit_button('View History')
 
         if submitted:
@@ -407,11 +421,11 @@ def show_history():
 
 
 def show_account_details():
-    st.header('View Account Details')
+    st.header(VIEW_ACCOUNT_DETAILS)
 
     with st.form('details_form'):
-        account_num = st.text_input('Account Number')
-        pin = st.text_input('4-digit PIN', type='password', max_chars=4)
+        account_num = st.text_input(ACCOUNT_NUMBER)
+        pin = st.text_input(FOUR_DIGIT_PIN, type='password', max_chars=4)
         submitted = st.form_submit_button('View Details')
 
         if submitted:
@@ -456,12 +470,12 @@ def show_account_details():
 
 
 def show_close_account():
-    st.header('Close Account')
+    st.header(CLOSE_ACCOUNT)
 
     with st.form('close_form'):
-        account_num = st.text_input('Account Number')
-        pin = st.text_input('4-digit PIN', type='password', max_chars=4)
-        submitted = st.form_submit_button('Close Account')
+        account_num = st.text_input(ACCOUNT_NUMBER)
+        pin = st.text_input(FOUR_DIGIT_PIN, type='password', max_chars=4)
+        submitted = st.form_submit_button(CLOSE_ACCOUNT)
 
         if submitted:
             ok, msg = verify_pin_for_account(account_num, pin)
