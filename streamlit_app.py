@@ -224,7 +224,7 @@ def show_deposit():
                 )
                 row = cursor.fetchone()
                 if row is None:
-                    st.error('Account number not found.')
+                    st.error(ACCOUNT_NOT_FOUND)
                     return
 
                 account_data = {
@@ -293,7 +293,7 @@ def show_withdraw():
                 )
                 row = cursor.fetchone()
                 if row is None:
-                    st.error('Account number not found.')
+                    st.error(ACCOUNT_NOT_FOUND)
                     return
 
                 account_data = {
