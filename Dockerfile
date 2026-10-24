@@ -57,7 +57,7 @@ EXPOSE 8501
 USER nonroot
 
 ENTRYPOINT [ "uv", "run", "--no-build", "--frozen", \
-  "streamlit", "run", "src/app.py", \
+  "streamlit", "run", "app.py", \
   "--server.port=8501", \
   "--server.address=0.0.0.0", \
   "--browser.gatherUsageStats=false"]
