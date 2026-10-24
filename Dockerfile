@@ -53,15 +53,28 @@ EXPOSE 8501
 # ##########################################################################
 # Command to Run
 # ##########################################################################
-# Switch to non-root user
-USER nonroot
+# # Switch to non-root user
+# USER nonroot
+
+# # ENTRYPOINT [ "uv", "run", "--no-build", "--frozen", \
+# #   "streamlit", "run", "app.py", \
+# #   "--server.port=8501", \
+# #   "--server.address=0.0.0.0", \
+# #   "--browser.gatherUsageStats=false"]
 
 # ENTRYPOINT [ "uv", "run", "--no-build", "--frozen", \
-#   "streamlit", "run", "app.py", \
+#   "python", "-m", "streamlit", "run", "src/app.py", \
 #   "--server.port=8501", \
 #   "--server.address=0.0.0.0", \
-#   "--browser.gatherUsageStats=false"]
+#   "--browser.gatherUsageStats=false" ]
 
+# Force the container to explicitly work from the application root directory
+WORKDIR /app
+
+# Add both root and src directory into the Python module path
+ENV PYTHONPATH="/app:/app/src"
+
+# Use the absolute python path approach bypassing the 'File does not exist' issue
 ENTRYPOINT [ "uv", "run", "--no-build", "--frozen", \
   "python", "-m", "streamlit", "run", "src/app.py", \
   "--server.port=8501", \
