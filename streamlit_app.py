@@ -170,7 +170,7 @@ def show_open_account():
                 st.error("Registration Failed! Correct these issues:")
                 for error in e.errors():
                     field = " -> ".join(str(loc) for loc in error["loc"])
-                    st.write(f"- {field}: {error["msg"]}")
+                    st.write("- " + field + ": " + error["msg"])
                 conn.rollback()
             except sqlite3.IntegrityError:
                 st.error(
@@ -399,7 +399,7 @@ def show_history():
                 data.append({
                     "#": idx,
                     "Type": txn_type.capitalize(),
-                    "Amount": f"{'+' if txn_type == "deposit" else "-"}{amount:,.2f}",
+                    "Amount": ("+" if txn_type == "deposit" else "-") + f"{amount:,.2f}",
                     "Balance After": f"{balance_after:,.2f}",
                     "Timestamp": timestamp,
                 })
@@ -442,17 +442,17 @@ def show_account_details():
                 st.write(f"**Age:** {row[4]}")
                 st.write(f"**City:** {row[7]}")
                 st.write(f"**Phone:** {row[3]}")
-                st.write(f"**Email:** {row[2] or "N/A"}")
-                st.write(f"**Address:** {row[6] or "N/A"}")
+                st.write("**Email:** " + (row[2] or "N/A"))
+                st.write("**Address:** " + (row[6] or "N/A"))
             with col2:
                 st.subheader("Account Details")
                 st.write(f"**Account Number:** {row[8]}")
                 st.write(
-                    f"**Account Type:** {row[10].capitalize() if row[10] else "Savings"}"
+                    "**Account Type:** " + (row[10].capitalize() if row[10] else "Savings")
                 )
                 st.write(f"**Currency:** {row[12]}")
                 st.write(f"**Balance:** {row[11]:,.2f} {row[12]}")
-                st.write(f"**Status:** {"🟢 Active" if row[13] else "🔴 Inactive"}")
+                st.write("**Status:** " + ("🟢 Active" if row[13] else "🔴 Inactive"))
 
 
 def show_close_account():
