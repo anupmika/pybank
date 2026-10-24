@@ -2,10 +2,7 @@
 Main application module for PyBank CLI.
 Handles the main menu loop and user input routing to PyBank operations.
 """
-import os
-import sys
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from src.const import BANK_MENU
 from src.enums import BankAction
 from src.handlers.pybank import PyBank
