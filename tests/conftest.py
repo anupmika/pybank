@@ -107,12 +107,14 @@ def bank(db_path: str, reset_singletons):
         db_path: Path to the test database.
         reset_singletons: Fixture to reset singleton instances.
 
-    Returns:
+    Yields:
         PyBank: Configured PyBank handler for testing.
     """
     from src.handlers.pybank import PyBank
 
-    return PyBank()
+    bank = PyBank()
+    yield bank
+    bank.connect.close()
 
 
 def insert_user(

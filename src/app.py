@@ -30,23 +30,25 @@ def bank():
 
         # Create PyBank instance for this operation
         obj = PyBank()
-
-        # Route to appropriate handler based on user choice
-        match user_choice:
-            case BankAction.OPEN_ACCOUNT:
-                obj.register_account()
-            case BankAction.DEPOSIT_MONEY:
-                obj.deposit_money()
-            case BankAction.WITHDRAW_MONEY:
-                obj.withdraw_money()
-            case BankAction.VIEW_BALANCE:
-                obj.view_balance()
-            case BankAction.VIEW_HISTORY:
-                obj.view_history()
-            case BankAction.CLOSE_ACCOUNT:
-                obj.close_account()
-            case BankAction.VIEW_ACCOUNT:
-                obj.view_data()
-            case BankAction.CLOSE_APP:
-                print('Exiting!!!')
-                return
+        try:
+            # Route to appropriate handler based on user choice
+            match user_choice:
+                case BankAction.OPEN_ACCOUNT:
+                    obj.register_account()
+                case BankAction.DEPOSIT_MONEY:
+                    obj.deposit_money()
+                case BankAction.WITHDRAW_MONEY:
+                    obj.withdraw_money()
+                case BankAction.VIEW_BALANCE:
+                    obj.view_balance()
+                case BankAction.VIEW_HISTORY:
+                    obj.view_history()
+                case BankAction.CLOSE_ACCOUNT:
+                    obj.close_account()
+                case BankAction.VIEW_ACCOUNT:
+                    obj.view_data()
+                case BankAction.CLOSE_APP:
+                    print('Exiting!!!')
+                    return
+        finally:
+            obj.connect.close()

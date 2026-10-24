@@ -149,6 +149,7 @@ class PyBank:
             # Validate user data
             validated_user = User(**user_input)
             user_dict = validated_user.model_dump()
+            user_dict['created_at'] = user_dict['created_at'].isoformat()
 
             # Insert user into database
             user_query = """
@@ -171,6 +172,7 @@ class PyBank:
             validated_account = Account(**account_input)
             account_dict = validated_account.model_dump()
             account_dict['pin_hash'] = hash_pin(pin)
+            account_dict['created_at'] = account_dict['created_at'].isoformat()
 
             # Insert account into database
             account_query = """
