@@ -37,7 +37,7 @@ ENV XDG_CACHE_HOME=/tmp/.cache
 # Copy Files
 # ##########################################################################
 # Copy dependency files first for better caching
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 
 # Install dependencies into a local folder
 RUN uv sync --no-cache --frozen --no-build
