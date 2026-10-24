@@ -15,6 +15,10 @@ sync:
 run: sync
     @uv run main.py
 
+# Run the Streamlit application development server
+dev-ui: sync
+    uv run streamlit run streamlit_app.py --server.headless=true --server.address=0.0.0.0
+
 # Run the test target
 test: sync
     @uv run --group dev pytest {{ TESTS_DIR }} -v

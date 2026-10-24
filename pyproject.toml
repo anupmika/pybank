@@ -8,6 +8,7 @@ dependencies = [
     "annotated-types>=0.8.0",
     "colorama>=0.4.6",
     "pydantic[email]>=2.14.1",
+    "streamlit>=1.66.1",
 ]
 
 [dependency-groups]
