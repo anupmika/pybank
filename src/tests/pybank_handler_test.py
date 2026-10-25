@@ -253,7 +253,52 @@ class TestPyBankCore:
         captured = capsys.readouterr()
         assert 'Account number not found' in captured.out
 
-    def test_withdraw_insufficient_funds_case(self, bank, capsys):
+    def test_transfer_money_success(self, bank, capsys):
+        """Test transferring money between accounts."""
+        # Register source account
+        user_inputs_src = [
+            '123456789040',
+            'Source User',
+            '',
+            '9876543240',
+            '30',
+            'Father',
+            '',
+            'City',
+            '1000.0',
+        ]
+        with patch('builtins.input', side_effect=user_inputs_src), \
+             patch('src.handlers.pybank.getpass', side_effect=['1234', '1234']):
+            bank.register_account()
+        captured = capsys.readouterr()
+        import re
+        m = re.search(r'Account Number is: (\d+)', captured.out)
+        src_acc = m.group(1)
+
+        # Register destination account
+        user_inputs_dst = [
+            '123456789041',
+            'Dest User',
+            '',
+            '9876543241',
+            '30',
+            'Father',
+            '',
+            'City',
+            '500.0',
+        ]
+        with patch('builtins.input', side_effect=user_inputs_dst), \
+             patch('src.handlers.pybank.getpass', side_effect=['5678', '5678']):
+            bank.register_account()
+        captured2 = capsys.readouterr()
+        m2 = re.search(r'Account Number is: (\d+)', captured2.out)
+        dst_acc = m2.group(1)
+
+        with patch('builtins.input', side_effect=[src_acc, dst_acc, '300']), \
+             patch('src.handlers.pybank.getpass', return_value='1234'):
+            bank.transfer_money()
+        captured3 = capsys.readouterr()
+        assert 'TRANSFER TRANSACTION SUCCESSFUL' in captured3.out
         """Test withdraw that might cause validation issues."""
         user_inputs = [
             '123456789031',

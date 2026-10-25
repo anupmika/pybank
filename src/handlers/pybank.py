@@ -515,6 +515,118 @@ class PyBank:
             print(f"❌ System error during deposit execution: {err}")
             self.connect.rollback()
 
+    def transfer_money(self):
+        """Transfer money from one account to another."""
+        cursor = self.cursor
+
+        try:
+            source_acc = input('Enter Source Account Number: ')
+            if not self._verify_pin(source_acc):
+                return
+
+            dest_acc = input('Enter Destination Account Number: ')
+            amount_str = input('Enter Amount to Transfer: ')
+
+            try:
+                amount = float(amount_str)
+                if amount <= 0:
+                    print('❌ Error: Transfer amount must be greater than zero.')
+                    return
+            except ValueError:
+                print(INVALID_AMOUNT)
+                return
+
+            if source_acc == dest_acc:
+                print('❌ Error: Source and destination accounts must be different.')
+                return
+
+            # Fetch source account
+            src_row = cursor.execute(
+                'SELECT account_num, user_id, account_type, balance, currency, is_active, created_at '
+                'FROM accounts WHERE account_num = ?', (source_acc,)
+            ).fetchone()
+            if src_row is None:
+                print(ACCOUNT_NOT_FOUND)
+                return
+
+            # Fetch destination account
+            dst_row = cursor.execute(
+                'SELECT account_num, user_id, account_type, balance, currency, is_active, created_at '
+                'FROM accounts WHERE account_num = ?', (dest_acc,)
+            ).fetchone()
+            if dst_row is None:
+                print(ACCOUNT_NOT_FOUND)
+                return
+
+            src_data = {
+                'account_num': src_row[0],
+                'user_id': src_row[1],
+                'account_type': src_row[2],
+                'balance': src_row[3] - amount,
+                'currency': src_row[4],
+                'is_active': bool(src_row[5]),
+                'created_at': src_row[6],
+            }
+            dst_data = {
+                'account_num': dst_row[0],
+                'user_id': dst_row[1],
+                'account_type': dst_row[2],
+                'balance': dst_row[3] + amount,
+                'currency': dst_row[4],
+                'is_active': bool(dst_row[5]),
+                'created_at': dst_row[6],
+            }
+
+            src_account = Account.model_validate(src_data)
+            dst_account = Account.model_validate(dst_data)
+
+            if not src_account.is_active:
+                print('❌ Transaction Denied: Source account is inactive.')
+                return
+            if not dst_account.is_active:
+                print('❌ Transaction Denied: Destination account is inactive.')
+                return
+
+            # Debit source
+            cursor.execute(
+                'UPDATE accounts SET balance = ? WHERE account_num = ?',
+                (src_account.balance, src_account.account_num),
+            )
+            # Credit destination
+            cursor.execute(
+                'UPDATE accounts SET balance = ? WHERE account_num = ?',
+                (dst_account.balance, dst_account.account_num),
+            )
+
+            # Record transactions
+            cursor.execute(
+                'INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp) VALUES (?, ?, ?, ?, ?)',
+                (src_account.account_num, 'transfer_out', amount, src_account.balance, datetime.now().isoformat()),
+            )
+            cursor.execute(
+                'INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp) VALUES (?, ?, ?, ?, ?)',
+                (dst_account.account_num, 'transfer_in', amount, dst_account.balance, datetime.now().isoformat()),
+            )
+
+            self.connect.commit()
+
+            print(
+                f"\\n==============================================\\n"
+                f"💸 TRANSFER TRANSACTION SUCCESSFUL\\n"
+                f"From Account  : {src_account.account_num}\\n"
+                f"To Account    : {dst_account.account_num}\\n"
+                f"Amount        : {amount:,.2f} {src_account.currency}\n"
+                f"Source Balance: {src_account.balance:,.2f} {src_account.currency}\n"
+                f"=============================================="
+            )
+
+        except ValidationError as e:
+            print(f"❌ Transaction Blocked: Balance constraint validation failed. {e.errors()}")
+            self.connect.rollback()
+        except Exception as err:
+            print(f"❌ System error during transfer execution: {err}")
+            self.connect.rollback()
+
     def view_history(self):
         """View transaction history for an account after PIN verification."""
         cursor = self.cursor
@@ -560,7 +672,7 @@ class PyBank:
 
             for idx, txn in enumerate(transactions, start=1):
                 txn_type, amount, balance_after, timestamp = txn
-                sign = '+' if txn_type == 'deposit' else '-'
+                sign = '+' if txn_type in ('deposit', 'transfer_in') else '-'
                 print(
                     f"{idx:<4} {txn_type.capitalize():<10} {sign}{amount:>11,.2f} {balance_after:>14,.2f} {timestamp:<22}"
                 )

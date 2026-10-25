@@ -47,6 +47,8 @@ def bank():
                     obj.close_account()
                 case BankAction.VIEW_ACCOUNT:
                     obj.view_data()
+                case BankAction.TRANSFER_MONEY:
+                    obj.transfer_money()
                 case BankAction.CLOSE_APP:
                     print('Exiting!!!')
                     return

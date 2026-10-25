@@ -22,6 +22,7 @@ VIEW_BALANCE = 'View Balance'
 VIEW_TRANSACTION_HISTORY = 'View Transaction History'
 VIEW_ACCOUNT_DETAILS = 'View Account Details'
 CLOSE_ACCOUNT = 'Close Account'
+TRANSFER_MONEY = 'Transfer Money'
 ACCOUNT_NOT_FOUND = 'Account number not found.'
 ACCOUNT_NUMBER = 'Account Number'
 SELECT_ACCOUNT_BY_NUM = 'SELECT account_num, user_id, account_type, balance, currency, is_active, created_at FROM accounts WHERE account_num = ?'
@@ -56,6 +57,7 @@ def main():
             VIEW_BALANCE,
             VIEW_TRANSACTION_HISTORY,
             VIEW_ACCOUNT_DETAILS,
+            TRANSFER_MONEY,
             CLOSE_ACCOUNT,
         ],
     )
@@ -76,6 +78,8 @@ def main():
         show_account_details()
     elif menu == CLOSE_ACCOUNT:
         show_close_account()
+    elif menu == TRANSFER_MONEY:
+        show_transfer()
 
 
 def show_home():
@@ -88,8 +92,9 @@ def show_home():
     - 💸 **Withdraw Money** - Withdraw funds with PIN verification
     - 💳 **View Balance** - Check account balance
     - 📜 **View Transaction History** - See all transactions
-    - 👤 **View Account Details** - View full customer profile
-    - 🔒 **Close Account** - Deactivate an account
+     - 👤 **View Account Details** - View full customer profile
+     - 💸 **Transfer Money** - Transfer funds between accounts
+     - 🔒 **Close Account** - Deactivate an account
 
     Use the sidebar to navigate through the operations.
     ''')
@@ -413,7 +418,7 @@ def show_history():
                 data.append({
                     '#': idx,
                     'Type': txn_type.capitalize(),
-                    'Amount': ('+' if txn_type == 'deposit' else '-') + f'{amount:,.2f}',
+                    'Amount': ('+' if txn_type in ('deposit', 'transfer_in') else '-') + f'{amount:,.2f}',
                     'Balance After': f'{balance_after:,.2f}',
                     'Timestamp': timestamp,
                 })
@@ -467,6 +472,88 @@ def show_account_details():
                 st.write(f'**Currency:** {row[12]}')
                 st.write(f'**Balance:** {row[11]:,.2f} {row[12]}')
                 st.write('**Status:** ' + ('🟢 Active' if row[13] else '🔴 Inactive'))
+
+
+def show_transfer():
+    st.header(TRANSFER_MONEY)
+
+    with st.form('transfer_form'):
+        source_acc = st.text_input('Source Account Number')
+        source_pin = st.text_input(FOUR_DIGIT_PIN, type='password', max_chars=4)
+        dest_acc = st.text_input('Destination Account Number')
+        amount = st.number_input('Amount to Transfer (INR)', min_value=0.01, step=100.0)
+        submitted = st.form_submit_button('Transfer')
+
+        if submitted:
+            ok, msg = verify_pin_for_account(source_acc, source_pin)
+            if not ok:
+                st.error(msg)
+                return
+            if source_acc == dest_acc:
+                st.error('Source and destination accounts must be different.')
+                return
+
+            try:
+                cursor.execute(SELECT_ACCOUNT_BY_NUM, (source_acc,))
+                src_row = cursor.fetchone()
+                cursor.execute(SELECT_ACCOUNT_BY_NUM, (dest_acc,))
+                dst_row = cursor.fetchone()
+                if src_row is None or dst_row is None:
+                    st.error(ACCOUNT_NOT_FOUND)
+                    return
+
+                src_data = {
+                    'account_num': src_row[0],
+                    'user_id': src_row[1],
+                    'account_type': src_row[2],
+                    'balance': src_row[3] - amount,
+                    'currency': src_row[4],
+                    'is_active': bool(src_row[5]),
+                    'created_at': src_row[6],
+                }
+                dst_data = {
+                    'account_num': dst_row[0],
+                    'user_id': dst_row[1],
+                    'account_type': dst_row[2],
+                    'balance': dst_row[3] + amount,
+                    'currency': dst_row[4],
+                    'is_active': bool(dst_row[5]),
+                    'created_at': dst_row[6],
+                }
+                src_account = Account.model_validate(src_data)
+                dst_account = Account.model_validate(dst_data)
+                if not src_account.is_active:
+                    st.error('Source account is inactive.')
+                    return
+                if not dst_account.is_active:
+                    st.error('Destination account is inactive.')
+                    return
+
+                cursor.execute('UPDATE accounts SET balance = ? WHERE account_num = ?', (src_account.balance, src_account.account_num))
+                cursor.execute('UPDATE accounts SET balance = ? WHERE account_num = ?', (dst_account.balance, dst_account.account_num))
+                cursor.execute(
+                    'INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp) VALUES (?, ?, ?, ?, ?)',
+                    (src_account.account_num, 'transfer_out', amount, src_account.balance, datetime.now().isoformat()),
+                )
+                cursor.execute(
+                    'INSERT INTO transactions (account_num, transaction_type, amount, balance_after, timestamp) VALUES (?, ?, ?, ?, ?)',
+                    (dst_account.account_num, 'transfer_in', amount, dst_account.balance, datetime.now().isoformat()),
+                )
+                conn.commit()
+
+                st.success(f'''
+                **Transfer Successful!**
+                From: {src_account.account_num}
+                To: {dst_account.account_num}
+                Amount: {amount:,.2f} {src_account.currency}
+                Source Balance: {src_account.balance:,.2f} {src_account.currency}
+                ''')
+            except ValidationError as e:
+                st.error(f'Transaction Blocked: {e.errors()}')
+                conn.rollback()
+            except Exception as err:
+                st.error(f'Error: {err}')
+                conn.rollback()
 
 
 def show_close_account():

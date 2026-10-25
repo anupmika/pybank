@@ -15,4 +15,5 @@ class BankAction(Enum):
     VIEW_HISTORY = 5      # View transaction history
     CLOSE_ACCOUNT = 6     # Close/deactivate an account
     VIEW_ACCOUNT = 7      # View full account and user details
-    CLOSE_APP = 8         # Exit the application
+    TRANSFER_MONEY = 8    # Transfer money between accounts
+    CLOSE_APP = 9         # Exit the application
