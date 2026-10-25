@@ -144,7 +144,7 @@ class TestSqliteDBRobustness:
 
         instance = SqliteDB()
         conn = instance.db_connect()
-        cur = conn.execute("PRAGMA database_list")
+        cur = conn.execute('PRAGMA database_list')
         db_list = cur.fetchall()
         conn.close()
         assert '/tmp' in db_list[0][2]
@@ -158,7 +158,7 @@ class TestSqliteDBRobustness:
         for cls in list(SingletonMeta._instances.keys()):
             del SingletonMeta._instances[cls]
 
-        bad_path = str(tmp_path / "bad" / "pybank.db")
+        bad_path = str(tmp_path / 'bad' / 'pybank.db')
         monkeypatch.setattr(const, 'DB_PATH', bad_path)
         monkeypatch.setattr(sqlite_db, 'DB_PATH', bad_path)
         monkeypatch.setattr(sqlite_db, '_DEFAULT_DB_PATH', bad_path)
@@ -170,12 +170,12 @@ class TestSqliteDBRobustness:
         original_makedirs = _os.makedirs
 
         def fake_makedirs(path, *args, **kwargs):
-            raise OSError("permission denied")
+            raise OSError('permission denied')
 
         monkeypatch.setattr(_os, 'makedirs', fake_makedirs)
         instance = SqliteDB()
         conn = instance.db_connect()
-        cur = conn.execute("PRAGMA database_list")
+        cur = conn.execute('PRAGMA database_list')
         db_list = cur.fetchall()
         conn.close()
         monkeypatch.setattr(_os, 'makedirs', original_makedirs)

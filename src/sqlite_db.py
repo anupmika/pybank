@@ -29,9 +29,9 @@ class SqliteDB(metaclass=SingletonMeta):
 
         # If tests have overridden to a custom path (e.g., temp file), respect it
         # unless it's in a clearly unwritable cloud repo mount
-        is_cloud_mount = os.path.exists("/mount/src") or bool(
-            os.environ.get("STREAMLIT_SERVER_PORT")
-            or os.environ.get("STREAMLIT_RUNTIME_ENV")
+        is_cloud_mount = os.path.exists('/mount/src') or bool(
+            os.environ.get('STREAMLIT_SERVER_PORT')
+            or os.environ.get('STREAMLIT_RUNTIME_ENV')
         )
 
         # If using default repo-relative path on cloud, move to /tmp for writability
@@ -41,14 +41,14 @@ class SqliteDB(metaclass=SingletonMeta):
             # If it's the default location or under /mount/src, prefer /tmp
             if (
                 str(cand_path) == str(default_repo_path)
-                or str(cand_path).startswith("/mount/src")
+                or str(cand_path).startswith('/mount/src')
                 or not os.access(
-                    os.path.dirname(os.path.abspath(cand_path)) or ".", os.W_OK
+                    os.path.dirname(os.path.abspath(cand_path)) or '.', os.W_OK
                 )
             ):
-                tmp_dir = Path("/tmp")
+                tmp_dir = Path('/tmp')
                 tmp_dir.mkdir(parents=True, exist_ok=True)
-                target = tmp_dir / "pybank.db"
+                target = tmp_dir / 'pybank.db'
                 # Try to copy existing DB if present
                 try:
                     if default_repo_path.exists() and not target.exists():
@@ -66,9 +66,9 @@ class SqliteDB(metaclass=SingletonMeta):
                 os.makedirs(db_dir, exist_ok=True)
         except Exception:
             # Fall back to /tmp
-            tmp_dir = Path("/tmp")
+            tmp_dir = Path('/tmp')
             tmp_dir.mkdir(parents=True, exist_ok=True)
-            return str(tmp_dir / "pybank.db")
+            return str(tmp_dir / 'pybank.db')
 
         return candidate
 
@@ -87,17 +87,17 @@ class SqliteDB(metaclass=SingletonMeta):
 
         # Create database connection with WAL mode for better concurrency where possible
         conn = sqlite3.connect(db_path, check_same_thread=False, timeout=30)
-        conn.execute("PRAGMA busy_timeout=5000;")
-        conn.execute("PRAGMA temp_store=MEMORY;")
+        conn.execute('PRAGMA busy_timeout=5000;')
+        conn.execute('PRAGMA temp_store=MEMORY;')
         try:
-            cur = conn.execute("PRAGMA journal_mode=WAL;")
+            cur = conn.execute('PRAGMA journal_mode=WAL;')
             mode = cur.fetchone()
-            if not mode or str(mode[0]).lower() != "wal":
-                raise sqlite3.OperationalError("WAL not enabled")
-            conn.execute("PRAGMA synchronous=NORMAL;")
+            if not mode or str(mode[0]).lower() != 'wal':
+                raise sqlite3.OperationalError('WAL not enabled')
+            conn.execute('PRAGMA synchronous=NORMAL;')
         except sqlite3.OperationalError:
-            conn.execute("PRAGMA journal_mode=DELETE;")
-            conn.execute("PRAGMA synchronous=FULL;")
+            conn.execute('PRAGMA journal_mode=DELETE;')
+            conn.execute('PRAGMA synchronous=FULL;')
 
         # Create tables if they don't exist
         conn.executescript(
@@ -142,9 +142,9 @@ class SqliteDB(metaclass=SingletonMeta):
 
         # Migration: Add pin_hash column for older database files
         # Older database files were created before PIN login existed
-        columns = [row[1] for row in conn.execute("PRAGMA table_info(accounts)")]
-        if "pin_hash" not in columns:
-            conn.execute("ALTER TABLE accounts ADD COLUMN pin_hash TEXT")
+        columns = [row[1] for row in conn.execute('PRAGMA table_info(accounts)')]
+        if 'pin_hash' not in columns:
+            conn.execute('ALTER TABLE accounts ADD COLUMN pin_hash TEXT')
 
         conn.commit()
         return conn
