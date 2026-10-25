@@ -225,4 +225,5 @@ class TestSqliteDBRobustness:
         cur = conn.execute('PRAGMA database_list')
         db_list = cur.fetchall()
         conn.close()
-        assert instance._is_cloud_environment() and ('/tmp' in db_list[0][2] or 'tmp' in db_list[0][2].lower())
+        assert instance._is_cloud_environment()
+        assert '/tmp' in db_list[0][2] or 'tmp' in db_list[0][2].lower()
