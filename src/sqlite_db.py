@@ -24,54 +24,67 @@ class SqliteDB(metaclass=SingletonMeta):
     the application lifecycle.
     """
 
-    def _get_writable_db_path(self):
-        """Determine a writable database path (fallback to temp dir on cloud)."""
-        candidate = DB_PATH
+    def _get_temp_dir(self) -> Path:
+        """Get a writable temp directory."""
+        tmp_dir = Path(tempfile.gettempdir())
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        return tmp_dir
 
-        # If tests have overridden to a custom path (e.g., temp file), respect it
-        # unless it's in a clearly unwritable cloud repo mount
-        is_cloud_mount = os.path.exists('/mount/src') or bool(
+    def _get_temp_db_path(self) -> str:
+        """Get path to DB in temp directory."""
+        return str(self._get_temp_dir() / 'pybank.db')
+
+    def _copy_db_if_missing(self, src: Path, dst: Path) -> None:
+        """Copy database file if source exists and destination does not."""
+        try:
+            if src.exists() and not dst.exists():
+                shutil.copy2(src, dst)
+        except Exception:
+            pass
+
+    def _is_cloud_environment(self) -> bool:
+        """Check if running in a cloud environment."""
+        return os.path.exists('/mount/src') or bool(
             os.environ.get('STREAMLIT_SERVER_PORT')
             or os.environ.get('STREAMLIT_RUNTIME_ENV')
         )
 
-        # If using default repo-relative path on cloud, move to temp dir for writability
-        if is_cloud_mount:
-            default_repo_path = Path(_DEFAULT_DB_PATH)
-            cand_path = Path(candidate)
-            # If it's the default location or under /mount/src, prefer temp dir
-            if (
-                str(cand_path) == str(default_repo_path)
-                or str(cand_path).startswith('/mount/src')
-                or not os.access(
-                    os.path.dirname(os.path.abspath(cand_path)) or '.', os.W_OK
-                )
-            ):
-                tmp_dir = Path(tempfile.gettempdir())
-                tmp_dir.mkdir(parents=True, exist_ok=True)
-                target = tmp_dir / 'pybank.db'
-                # Try to copy existing DB if present
-                try:
-                    if default_repo_path.exists() and not target.exists():
-                        shutil.copy2(default_repo_path, target)
-                    elif cand_path.exists() and not target.exists() and cand_path != target:
-                        shutil.copy2(cand_path, target)
-                except Exception:
-                    pass
-                return str(target)
+    def _should_use_temp_in_cloud(self, default_repo_path: Path, cand_path: Path) -> bool:
+        """Determine if we should use temp directory in cloud environment."""
+        if str(cand_path) == str(default_repo_path):
+            return True
+        if str(cand_path).startswith('/mount/src'):
+            return True
+        db_dir = os.path.dirname(os.path.abspath(cand_path)) or '.'
+        return not os.access(db_dir, os.W_OK)
 
-        # Ensure directory exists for candidate
+    def _get_cloud_db_path(self, default_repo_path: Path, cand_path: Path) -> str:
+        """Get database path for cloud environment."""
+        tmp_dir = self._get_temp_dir()
+        target = tmp_dir / 'pybank.db'
+        self._copy_db_if_missing(default_repo_path, target)
+        if cand_path != default_repo_path:
+            self._copy_db_if_missing(cand_path, target)
+        return str(target)
+
+    def _get_writable_db_path(self):
+        """Determine a writable database path (fallback to temp dir on cloud)."""
+        candidate = DB_PATH
+        default_repo_path = Path(_DEFAULT_DB_PATH)
+        cand_path = Path(candidate)
+
+        if self._is_cloud_environment() and self._should_use_temp_in_cloud(
+            default_repo_path, cand_path
+        ):
+            return self._get_cloud_db_path(default_repo_path, cand_path)
+
         try:
             db_dir = os.path.dirname(os.path.abspath(candidate))
             if db_dir:
                 os.makedirs(db_dir, exist_ok=True)
+            return candidate
         except Exception:
-            # Fall back to temp dir
-            tmp_dir = Path(tempfile.gettempdir())
-            tmp_dir.mkdir(parents=True, exist_ok=True)
-            return str(tmp_dir / 'pybank.db')
-
-        return candidate
+            return self._get_temp_db_path()
 
     def db_connect(self):
         """
