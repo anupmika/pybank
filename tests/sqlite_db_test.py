@@ -123,8 +123,7 @@ class TestSqliteDBRobustness:
 
     def test_cloud_path_uses_tmp(self, tmp_path, monkeypatch, reset_singletons):
         """Test that on cloud-like environment DB is moved to /tmp."""
-        from src import const
-        from src import sqlite_db
+        from src import const, sqlite_db
         from src.helpers.design import SingletonMeta
 
         for cls in list(SingletonMeta._instances.keys()):
@@ -151,8 +150,7 @@ class TestSqliteDBRobustness:
 
     def test_makedirs_exception_fallback(self, tmp_path, monkeypatch, reset_singletons):
         """Test fallback when makedirs fails."""
-        from src import const
-        from src import sqlite_db
+        from src import const, sqlite_db
         from src.helpers.design import SingletonMeta
 
         for cls in list(SingletonMeta._instances.keys()):
@@ -183,7 +181,6 @@ class TestSqliteDBRobustness:
 
     def test_get_temp_db_path(self, tmp_path, monkeypatch, reset_singletons):
         """Test _get_temp_db_path returns path in temp dir."""
-        from src import sqlite_db
         from src.helpers.design import SingletonMeta
 
         for cls in list(SingletonMeta._instances.keys()):
@@ -195,8 +192,7 @@ class TestSqliteDBRobustness:
 
     def test_cloud_env_and_should_use_temp(self, tmp_path, monkeypatch, reset_singletons):
         """Test cloud environment detection and temp usage logic."""
-        from src import const
-        from src import sqlite_db
+        from src import const, sqlite_db
         from src.helpers.design import SingletonMeta
 
         for cls in list(SingletonMeta._instances.keys()):
@@ -219,4 +215,4 @@ class TestSqliteDBRobustness:
         cur = conn.execute('PRAGMA database_list')
         db_list = cur.fetchall()
         conn.close()
-        assert '/tmp' in db_list[0][2] or instance._is_cloud_environment()
+        assert instance._is_cloud_environment() and ('/tmp' in db_list[0][2] or 'tmp' in db_list[0][2].lower())
