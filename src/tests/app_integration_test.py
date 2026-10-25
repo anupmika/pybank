@@ -39,7 +39,7 @@ class TestAppMore:
 
         # Deposit via the menu, then exit
         from src import app
-        with patch('builtins.input', side_effect=['2', acc, '500.0', '8']):
+        with patch('builtins.input', side_effect=['2', acc, '500.0', '9']):
             app.bank()
         captured2 = capsys.readouterr()
         assert 'DEPOSIT TRANSACTION SUCCESSFUL' in captured2.out
