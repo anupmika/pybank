@@ -6,6 +6,7 @@ Handles SQLite database connections, schema creation, and migrations.
 import os
 import shutil
 import sqlite3
+import tempfile
 from pathlib import Path
 
 from src.const import DB_PATH as _DEFAULT_DB_PATH
@@ -24,7 +25,7 @@ class SqliteDB(metaclass=SingletonMeta):
     """
 
     def _get_writable_db_path(self):
-        """Determine a writable database path (fallback to /tmp on cloud)."""
+        """Determine a writable database path (fallback to temp dir on cloud)."""
         candidate = DB_PATH
 
         # If tests have overridden to a custom path (e.g., temp file), respect it
@@ -34,11 +35,11 @@ class SqliteDB(metaclass=SingletonMeta):
             or os.environ.get('STREAMLIT_RUNTIME_ENV')
         )
 
-        # If using default repo-relative path on cloud, move to /tmp for writability
+        # If using default repo-relative path on cloud, move to temp dir for writability
         if is_cloud_mount:
             default_repo_path = Path(_DEFAULT_DB_PATH)
             cand_path = Path(candidate)
-            # If it's the default location or under /mount/src, prefer /tmp
+            # If it's the default location or under /mount/src, prefer temp dir
             if (
                 str(cand_path) == str(default_repo_path)
                 or str(cand_path).startswith('/mount/src')
@@ -46,7 +47,7 @@ class SqliteDB(metaclass=SingletonMeta):
                     os.path.dirname(os.path.abspath(cand_path)) or '.', os.W_OK
                 )
             ):
-                tmp_dir = Path('/tmp')
+                tmp_dir = Path(tempfile.gettempdir())
                 tmp_dir.mkdir(parents=True, exist_ok=True)
                 target = tmp_dir / 'pybank.db'
                 # Try to copy existing DB if present
@@ -65,8 +66,8 @@ class SqliteDB(metaclass=SingletonMeta):
             if db_dir:
                 os.makedirs(db_dir, exist_ok=True)
         except Exception:
-            # Fall back to /tmp
-            tmp_dir = Path('/tmp')
+            # Fall back to temp dir
+            tmp_dir = Path(tempfile.gettempdir())
             tmp_dir.mkdir(parents=True, exist_ok=True)
             return str(tmp_dir / 'pybank.db')
 
