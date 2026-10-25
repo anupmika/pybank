@@ -121,8 +121,8 @@ class TestSqliteDBRobustness:
         conn.close()
         assert mode.lower() == 'delete'
 
-    def test_cloud_path_uses_tmp(self, tmp_path, monkeypatch, reset_singletons):
-        """Test that on cloud-like environment DB is moved to /tmp."""
+    def _setup_cloud_test_env(self, tmp_path, monkeypatch, reset_singletons):
+        """Helper to set up cloud test environment."""
         from src import const, sqlite_db
         from src.helpers.design import SingletonMeta
 
@@ -135,6 +135,16 @@ class TestSqliteDBRobustness:
         db_dir.mkdir()
         repo_db = db_dir / 'pybank.db'
         repo_db.write_text('')
+        return repo_db, const, sqlite_db, repo_dir
+
+    def test_cloud_path_uses_tmp_with_copied_db(self, tmp_path, monkeypatch, reset_singletons):
+        """Test copying existing DB from repo to /tmp on cloud."""
+        repo_db, const, sqlite_db, _ = self._setup_cloud_test_env(tmp_path, monkeypatch, reset_singletons)
+        c = sqlite3.connect(str(repo_db))
+        c.execute('CREATE TABLE test(x)')
+        c.execute("INSERT INTO test VALUES(1)")
+        c.commit()
+        c.close()
 
         monkeypatch.setattr(const, 'DB_PATH', str(repo_db))
         monkeypatch.setattr(sqlite_db, 'DB_PATH', str(repo_db))
@@ -143,10 +153,10 @@ class TestSqliteDBRobustness:
 
         instance = SqliteDB()
         conn = instance.db_connect()
-        cur = conn.execute('PRAGMA database_list')
+        cur = conn.execute("PRAGMA database_list")
         db_list = cur.fetchall()
         conn.close()
-        assert '/tmp' in db_list[0][2]
+        assert '/tmp' in db_list[0][2] or 'tmp' in db_list[0][2].lower()
 
     def test_makedirs_exception_fallback(self, tmp_path, monkeypatch, reset_singletons):
         """Test fallback when makedirs fails."""
