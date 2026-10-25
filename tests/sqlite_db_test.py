@@ -142,7 +142,7 @@ class TestSqliteDBRobustness:
         repo_db, const, sqlite_db, _ = self._setup_cloud_test_env(tmp_path, monkeypatch, reset_singletons)
         c = sqlite3.connect(str(repo_db))
         c.execute('CREATE TABLE test(x)')
-        c.execute("INSERT INTO test VALUES(1)")
+        c.execute('INSERT INTO test VALUES(1)')
         c.commit()
         c.close()
 
@@ -153,7 +153,7 @@ class TestSqliteDBRobustness:
 
         instance = SqliteDB()
         conn = instance.db_connect()
-        cur = conn.execute("PRAGMA database_list")
+        cur = conn.execute('PRAGMA database_list')
         db_list = cur.fetchall()
         conn.close()
         assert '/tmp' in db_list[0][2] or 'tmp' in db_list[0][2].lower()
