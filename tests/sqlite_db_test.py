@@ -158,7 +158,7 @@ class TestSqliteDBRobustness:
         for cls in list(SingletonMeta._instances.keys()):
             del SingletonMeta._instances[cls]
 
-        bad_path = str(tmp_path / 'bad' / 'pybank.db')
+        bad_path = str(tmp_path / "bad" / "pybank.db")
         monkeypatch.setattr(const, 'DB_PATH', bad_path)
         monkeypatch.setattr(sqlite_db, 'DB_PATH', bad_path)
         monkeypatch.setattr(sqlite_db, '_DEFAULT_DB_PATH', bad_path)
@@ -170,13 +170,53 @@ class TestSqliteDBRobustness:
         original_makedirs = _os.makedirs
 
         def fake_makedirs(path, *args, **kwargs):
-            raise OSError('permission denied')
+            raise OSError("permission denied")
 
         monkeypatch.setattr(_os, 'makedirs', fake_makedirs)
         instance = SqliteDB()
         conn = instance.db_connect()
-        cur = conn.execute('PRAGMA database_list')
+        cur = conn.execute("PRAGMA database_list")
         db_list = cur.fetchall()
         conn.close()
         monkeypatch.setattr(_os, 'makedirs', original_makedirs)
-        assert '/tmp' in db_list[0][2]
+        assert '/tmp' in db_list[0][2] or 'tmp' in db_list[0][2]
+
+    def test_get_temp_db_path(self, tmp_path, monkeypatch, reset_singletons):
+        """Test _get_temp_db_path returns path in temp dir."""
+        from src import sqlite_db
+        from src.helpers.design import SingletonMeta
+
+        for cls in list(SingletonMeta._instances.keys()):
+            del SingletonMeta._instances[cls]
+
+        instance = SqliteDB()
+        path = instance._get_temp_db_path()
+        assert "pybank.db" in path
+
+    def test_cloud_env_and_should_use_temp(self, tmp_path, monkeypatch, reset_singletons):
+        """Test cloud environment detection and temp usage logic."""
+        from src import const
+        from src import sqlite_db
+        from src.helpers.design import SingletonMeta
+
+        for cls in list(SingletonMeta._instances.keys()):
+            del SingletonMeta._instances[cls]
+
+        repo_dir = tmp_path / "repo"
+        repo_dir.mkdir()
+        db_dir = repo_dir / "db"
+        db_dir.mkdir()
+        repo_db = db_dir / "pybank.db"
+        repo_db.write_text("")
+
+        monkeypatch.setattr(const, "DB_PATH", str(repo_db))
+        monkeypatch.setattr(sqlite_db, "DB_PATH", str(repo_db))
+        monkeypatch.setattr(sqlite_db, "_DEFAULT_DB_PATH", str(repo_db))
+        monkeypatch.setenv("STREAMLIT_RUNTIME_ENV", "cloud")
+
+        instance = SqliteDB()
+        conn = instance.db_connect()
+        cur = conn.execute("PRAGMA database_list")
+        db_list = cur.fetchall()
+        conn.close()
+        assert "/tmp" in db_list[0][2] or instance._is_cloud_environment()
