@@ -17,15 +17,20 @@ run: sync
 
 # Run the Streamlit application development server
 dev-ui: sync
-    uv run streamlit run streamlit_app.py --server.headless=true --server.address=0.0.0.0
+    @uv run streamlit run streamlit_app.py \
+    --server.headless=true \
+    --server.address=0.0.0.0
 
 # Run the test target
 test: sync
-    @uv run --group dev pytest {{ TESTS_DIR }} -v
+    @uv run --group dev pytest {{ TESTS_DIR }} -v --no-cov
 
 # Run tests with coverage report
 coverage: sync
-    @uv run --group dev pytest {{ TESTS_DIR }} -v --cov-report=term-missing --cov-report=html:{{ COV_DIR }} --cov-report=xml:{{ COV_DIR }}/coverage.xml --cov-report=lcov:{{ COV_DIR }}/lcov.info
+    @uv run --group dev pytest {{ TESTS_DIR }} -v \
+    --cov-report=html:{{ COV_DIR }} \
+    --cov-report=xml:{{ COV_DIR }}/coverage.xml \
+    --cov-report=lcov:{{ COV_DIR }}/lcov.info
 
 # Run tests and generate coverage report for Codecov Coverage
 codecov-coverage: sync
