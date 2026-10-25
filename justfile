@@ -23,7 +23,7 @@ dev-ui: sync
 
 # Run the test target
 test: sync
-    @uv run --group dev pytest {{ TESTS_DIR }} -v
+    @uv run --group dev pytest {{ TESTS_DIR }} -v --no-cov
 
 # Run tests with coverage report
 coverage: sync

@@ -12,9 +12,9 @@ from src import app
 class TestApp:
     """Test application loop."""
 
-    def test_app_close_on_choice_8(self, capsys):
-        """Test app exits when choice 8 is selected."""
-        with patch('builtins.input', return_value='8'):
+    def test_app_close_on_choice_9(self, capsys):
+        """Test app exits when choice 9 is selected."""
+        with patch('builtins.input', return_value='9'):
             app.bank()
         captured = capsys.readouterr()
         assert 'Exiting' in captured.out
@@ -22,7 +22,7 @@ class TestApp:
     def test_app_invalid_choice(self, capsys):
         """Test app handles invalid choice."""
         # First invalid, then exit
-        with patch('builtins.input', side_effect=['99', '8']):
+        with patch('builtins.input', side_effect=['99', '9']):
             app.bank()
         captured = capsys.readouterr()
         assert 'Invalid Choice' in captured.out
@@ -37,7 +37,8 @@ class TestApp:
              patch.object(PyBank, 'view_history') as mock_vh, \
              patch.object(PyBank, 'close_account') as mock_ca, \
              patch.object(PyBank, 'view_data') as mock_vd, \
-             patch('builtins.input', side_effect=['1', '2', '3', '4', '5', '6', '7', '8']):
+             patch.object(PyBank, 'transfer_money') as mock_tr, \
+             patch('builtins.input', side_effect=['1', '2', '3', '4', '5', '6', '7', '8', '9']):
             app.bank()
         mock_reg.assert_called_once()
         mock_dep.assert_called_once()
@@ -46,3 +47,4 @@ class TestApp:
         mock_vh.assert_called_once()
         mock_ca.assert_called_once()
         mock_vd.assert_called_once()
+        mock_tr.assert_called_once()
