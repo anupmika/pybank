@@ -2,7 +2,7 @@
 
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://anupmika-pybank.streamlit.app/)
 [![Python](https://img.shields.io/badge/python-3.12+-blue?logo=python)](https://www.python.org/)
-[![codecov](https://codecov.io/github/anupmika/pybank/graph/badge.svg?token=976A6T3HSC)](https://codecov.io/github/anupmika/pybank)
+[![codecov](https://codecov.io/github/anupmika/pybank/graph/badge.svg)](https://codecov.io/github/anupmika/pybank)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 > 🏦 **A modern dual-interface Python banking system** showcasing clean architecture, OOP, Pydantic v2 validation, SQLite persistence, secure PIN authentication, and seamless CLI + Web experiences.
