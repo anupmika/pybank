@@ -11,15 +11,16 @@ default:
 sync:
     @uv sync --no-cache --quiet
 
+# Run the Streamlit application development server
+dev: sync
+    @uv run streamlit run streamlit_app.py \
+    --server.runOnSave true \
+    --server.headless=false \
+    --server.address=0.0.0.0
+
 # Run the main application entrypoint
 run: sync
     @uv run main.py
-
-# Run the Streamlit application development server
-dev-ui: sync
-    @uv run streamlit run streamlit_app.py \
-    --server.headless=true \
-    --server.address=0.0.0.0
 
 # Run the test target
 test: sync
@@ -32,13 +33,9 @@ coverage: sync
     --cov-report=xml:{{ COV_DIR }}/coverage.xml \
     --cov-report=lcov:{{ COV_DIR }}/lcov.info
 
-# Run tests and generate coverage report for Codecov Coverage
-codecov-coverage: sync
-    @uv run --group dev pytest --cov --cov-branch --cov-report=xml
-
-# Run tests and generate coverage report for Codecov Tests
-codecov-tests: sync
-    @uv run --group dev pytest --cov --junitxml=junit.xml -o junit_family=legacy
+# Run tests and generate both coverage and test results for Codecov
+codecov: sync
+    @uv run --group dev pytest --cov --cov-branch --cov-report=xml:{{ COV_DIR }}/coverage.xml --junitxml={{ COV_DIR }}/junit.xml -o junit_family=legacy
 
 # Remove the local environment and generated Python caches
 clean:
